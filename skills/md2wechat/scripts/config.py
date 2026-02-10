@@ -45,7 +45,8 @@ class Config:
             self._appid = os.environ.get("WECHAT_APPID")
             if not self._appid:
                 raise ValueError(
-                    "WECHAT_APPID not found. Please set it in .env file."
+                    "WECHAT_APPID not found. Please set it in .env file or environment variable.\n"
+                    "Example: echo 'WECHAT_APPID=wx1234567890abcdef' > .env"
                 )
         return self._appid
 
@@ -56,6 +57,25 @@ class Config:
             self._app_secret = os.environ.get("WECHAT_APP_SECRET")
             if not self._app_secret:
                 raise ValueError(
-                    "WECHAT_APP_SECRET not found. Please set it in .env file."
+                    "WECHAT_APP_SECRET not found. Please set it in .env file or environment variable.\n"
+                    "Example: echo 'WECHAT_APP_SECRET=your_secret_here' >> .env"
                 )
         return self._app_secret
+
+    def validate_credentials(self) -> None:
+        """Validate that credentials are set and have correct format."""
+        appid = self.appid
+        app_secret = self.app_secret
+
+        # Check AppID format (typically 18 characters, starts with wx)
+        if not appid.startswith("wx") and not appid.startswith("gh"):
+            print(f"Warning: WECHAT_APPID '{appid[:6]}...' doesn't start with 'wx' or 'gh'")
+            print("Make sure you're using the correct AppID from mp.weixin.qq.com")
+
+        # Check AppSecret length (typically 32 characters)
+        if len(app_secret) < 20:
+            print(f"Warning: WECHAT_APP_SECRET seems too short ({len(app_secret)} chars)")
+            print("Make sure you're using the AppSecret, not the AppID")
+
+        print(f"✓ Using AppID: {appid[:6]}...")
+        print(f"✓ AppSecret loaded ({len(app_secret)} chars)")

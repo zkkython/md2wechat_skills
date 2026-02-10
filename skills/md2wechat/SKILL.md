@@ -21,28 +21,101 @@ Publish Markdown or HTML content to WeChat Official Account drafts via API, with
 python test_official_api.py
 ```
 
-## Scripts
+## Installation
 
-Located in `~/.claude/skills/md2wechat/scripts/`:
+### Method 1: PyPI Package (Standalone CLI)
 
-### publish.py (Recommended)
-Refactored modular version with cleaner architecture:
 ```bash
-# Publish from markdown file
+pip install md2wechat
+
+# Configure credentials
+cat > .env << EOF
+WECHAT_APPID=your_appid_here
+WECHAT_APP_SECRET=your_app_secret_here
+EOF
+```
+
+### Method 2: Source Installation (Claude Skill)
+
+```bash
+# Clone repository
+git clone https://github.com/zkkython/md2wechat.git
+cd md2wechat
+pip install -e .
+
+# Install as Claude skill
+mkdir -p ~/.claude/skills
+cp -r skills/md2wechat ~/.claude/skills/
+```
+
+## Usage
+
+### Command Line (PyPI)
+
+```bash
+# After pip install
+md2wechat publish --markdown /path/to/article.md
+md2wechat publish --html /path/to/article.html
+md2wechat publish --markdown article.md --type newspic
+```
+
+### Command Line (Source/Claude)
+
+```bash
 python skills/md2wechat/scripts/publish.py --markdown /path/to/article.md
-
-# Publish from HTML file
-python skills/md2wechat/scripts/publish.py --html /path/to/article.html
-
-# With options
-python skills/md2wechat/scripts/publish.py --markdown article.md --type newspic
 ```
 
-### Using as Python Module
-```bash
-# Run as a module
-python -m skills.md2wechat.scripts.publish --markdown article.md
+### As Claude Skill
+
+Once installed in `~/.claude/skills/`, use natural language:
 ```
+Publish this markdown article to WeChat: /path/to/article.md
+```
+
+## Common Errors
+
+### Error 40001: AppSecret 无效
+
+**原因：**
+- WECHAT_APP_SECRET 不正确
+- AppSecret 已被重置（重新生成后旧 Secret 会失效）
+- 使用了 AppID 而不是 AppSecret
+
+**解决方法：**
+1. 登录 [mp.weixin.qq.com](https://mp.weixin.qq.com)
+2. 设置 → 开发 → 基本配置
+3. 重置 AppSecret（重置后需立即更新 .env 文件）
+4. 确保使用的是 AppSecret，不是 AppID
+
+### Error 40013: AppID 无效
+
+**原因：**
+- WECHAT_APPID 不正确
+- AppID 格式错误
+
+**解决方法：**
+- AppID 应以 `wx` 开头，例如：`wx1234567890abcdef`
+- 确保使用的是 AppID，不是 AppSecret
+
+### Error 40164: IP 不在白名单
+
+**原因：**
+- 当前服务器 IP 不在微信公众平台的白名单中
+
+**解决方法：**
+1. 登录 [mp.weixin.qq.com](https://mp.weixin.qq.com)
+2. 设置 → 开发 → 基本配置 → IP 白名单
+3. 添加当前服务器 IP 地址
+
+### Error 404: 草稿箱 API 不可用
+
+**原因：**
+- 公众号未认证（仅认证服务号/订阅号可用草稿箱 API）
+- API 路径错误
+
+**解决方法：**
+- 确保公众号已完成微信认证
+- 检查公众号类型是否支持使用草稿箱功能
 
 ### Using in Python Code
 ```python

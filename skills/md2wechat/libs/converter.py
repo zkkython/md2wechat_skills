@@ -42,8 +42,25 @@ class StyleConfig:
     h3_title_text_color: str = "#333333"
     h3_title_font_size: str = "16px"
     # Code block styles
-    code_bg_color: str = "#F4F4F4"
-    code_border_color: str = "#E0E0E0"
+    code_bg_color: str = "#F8F9FA"
+    code_border_color: str = "#E9ECEF"
+    code_text_color: str = "#212529"
+    # Inline code styles
+    inline_code_bg_color: str = "#F1F3F5"
+    inline_code_text_color: str = "#E83E8C"
+    # Paragraph styles
+    paragraph_font_size: str = "16px"
+    paragraph_line_height: str = "1.75"
+    paragraph_color: str = "#333333"
+    # Blockquote styles
+    blockquote_bg_color: str = "#F8F9FA"
+    blockquote_border_color: str = "#DEE2E6"
+    blockquote_text_color: str = "#6C757D"
+    # Table styles
+    table_header_bg_color: str = "#F1F3F5"
+    table_border_color: str = "#DEE2E6"
+    # Link styles
+    link_color: str = "#0066CC"
     # Meta info styles
     meta_text_color: str = "#888888"
     meta_font_size: str = "12px"
@@ -57,49 +74,73 @@ class StyleConfig:
 STYLES = {
     "academic_gray": StyleConfig(
         name="学术灰风格",
-        header_bg_color="#3C3C3C",
+        header_bg_color="#2C3E50",
         header_text_color="#FFFFFF",
-        header_font_size="20px",
+        header_font_size="22px",
         card_bg_color="#FFFFFF",
-        card_border_color="#D9D9D9",
-        card_text_color="#333333",
-        h2_h3_card_bg_color="#FAFAFA",  # Solid color instead of rgba
+        card_border_color="#E0E0E0",
+        card_text_color="#2C3E50",
+        h2_h3_card_bg_color="#FAFAFA",
         h2_h3_card_border_color="#E8E8E8",
-        h2_title_line_color="#333333",
-        h2_title_text_color="#333333",
-        h2_title_font_size="18px",
-        h3_title_bg_color="#F5F5F5",
-        h3_title_border_color="#3C3C3C",
-        h3_title_text_color="#333333",
-        h3_title_font_size="16px",
-        code_bg_color="#F4F4F4",
-        code_border_color="#E0E0E0",
-        meta_text_color="#888888",
-        meta_font_size="12px",
-        source_text_color="#999999",
+        h2_title_line_color="#34495E",
+        h2_title_text_color="#2C3E50",
+        h2_title_font_size="20px",
+        h3_title_bg_color="#ECF0F1",
+        h3_title_border_color="#34495E",
+        h3_title_text_color="#34495E",
+        h3_title_font_size="17px",
+        code_bg_color="#F8F9FA",
+        code_border_color="#E9ECEF",
+        code_text_color="#2C3E50",
+        inline_code_bg_color="#F1F3F5",
+        inline_code_text_color="#C0392B",
+        paragraph_font_size="16px",
+        paragraph_line_height="1.8",
+        paragraph_color="#2C3E50",
+        blockquote_bg_color="#F8F9FA",
+        blockquote_border_color="#BDC3C7",
+        blockquote_text_color="#5D6D7E",
+        table_header_bg_color="#ECF0F1",
+        table_border_color="#BDC3C7",
+        link_color="#2980B9",
+        meta_text_color="#7F8C8D",
+        meta_font_size="13px",
+        source_text_color="#95A5A6",
         source_font_size="12px",
     ),
     "festival": StyleConfig(
         name="节日快乐色彩系",
-        header_bg_color="#FF6B6B",
+        header_bg_color="#E74C3C",
         header_text_color="#FFFFFF",
-        header_font_size="20px",
+        header_font_size="22px",
         card_bg_color="#FFF8E1",
-        card_border_color="#FFB74D",
+        card_border_color="#F39C12",
         card_text_color="#5D4037",
-        h2_h3_card_bg_color="#FFFDE7",  # Solid light yellow
-        h2_h3_card_border_color="#FFB74D",
-        h2_title_line_color="#FF6B6B",
-        h2_title_text_color="#D32F2F",
-        h2_title_font_size="18px",
+        h2_h3_card_bg_color="#FFFDE7",
+        h2_h3_card_border_color="#F39C12",
+        h2_title_line_color="#E74C3C",
+        h2_title_text_color="#C0392B",
+        h2_title_font_size="20px",
         h3_title_bg_color="#FFE082",
-        h3_title_border_color="#FF6B6B",
-        h3_title_text_color="#D32F2F",
-        h3_title_font_size="16px",
-        code_bg_color="#FFF3E0",
-        code_border_color="#FFB74D",
+        h3_title_border_color="#E74C3C",
+        h3_title_text_color="#C0392B",
+        h3_title_font_size="17px",
+        code_bg_color="#FFF8E1",
+        code_border_color="#F39C12",
+        code_text_color="#5D4037",
+        inline_code_bg_color="#FFECB3",
+        inline_code_text_color="#E65100",
+        paragraph_font_size="16px",
+        paragraph_line_height="1.8",
+        paragraph_color="#4E342E",
+        blockquote_bg_color="#FFF8E1",
+        blockquote_border_color="#FFB74D",
+        blockquote_text_color="#6D4C41",
+        table_header_bg_color="#FFE082",
+        table_border_color="#FFB74D",
+        link_color="#D84315",
         meta_text_color="#8D6E63",
-        meta_font_size="12px",
+        meta_font_size="13px",
         source_text_color="#A1887F",
         source_font_size="12px",
     ),
@@ -107,46 +148,70 @@ STYLES = {
         name="科技产品介绍色彩系",
         header_bg_color="#1565C0",
         header_text_color="#FFFFFF",
-        header_font_size="20px",
+        header_font_size="22px",
         card_bg_color="#E3F2FD",
         card_border_color="#42A5F5",
         card_text_color="#0D47A1",
-        h2_h3_card_bg_color="#E8F4FD",  # Solid light blue
+        h2_h3_card_bg_color="#E8F4FD",
         h2_h3_card_border_color="#42A5F5",
         h2_title_line_color="#1565C0",
         h2_title_text_color="#0D47A1",
-        h2_title_font_size="18px",
+        h2_title_font_size="20px",
         h3_title_bg_color="#BBDEFB",
         h3_title_border_color="#1565C0",
         h3_title_text_color="#0D47A1",
-        h3_title_font_size="16px",
-        code_bg_color="#E1F5FE",
-        code_border_color="#26C6DA",
+        h3_title_font_size="17px",
+        code_bg_color="#E3F2FD",
+        code_border_color="#64B5F6",
+        code_text_color="#0D47A1",
+        inline_code_bg_color="#BBDEFB",
+        inline_code_text_color="#1565C0",
+        paragraph_font_size="16px",
+        paragraph_line_height="1.8",
+        paragraph_color="#0D47A1",
+        blockquote_bg_color="#E3F2FD",
+        blockquote_border_color="#64B5F6",
+        blockquote_text_color="#1565C0",
+        table_header_bg_color="#BBDEFB",
+        table_border_color="#64B5F6",
+        link_color="#0277BD",
         meta_text_color="#546E7A",
-        meta_font_size="12px",
+        meta_font_size="13px",
         source_text_color="#78909C",
         source_font_size="12px",
     ),
     "announcement": StyleConfig(
         name="重大事情告知色彩系",
-        header_bg_color="#D32F2F",
+        header_bg_color="#C0392B",
         header_text_color="#FFFFFF",
         header_font_size="22px",
-        card_bg_color="#FFF3E0",
-        card_border_color="#FF5722",
-        card_text_color="#BF360C",
-        h2_h3_card_bg_color="#FFF8E1",  # Solid light orange
-        h2_h3_card_border_color="#FF5722",
-        h2_title_line_color="#D32F2F",
-        h2_title_text_color="#BF360C",
+        card_bg_color="#FEF5E7",
+        card_border_color="#E67E22",
+        card_text_color="#922B21",
+        h2_h3_card_bg_color="#FEF9E7",
+        h2_h3_card_border_color="#E67E22",
+        h2_title_line_color="#C0392B",
+        h2_title_text_color="#922B21",
         h2_title_font_size="20px",
-        h3_title_bg_color="#FFE0B2",
-        h3_title_border_color="#D32F2F",
-        h3_title_text_color="#BF360C",
+        h3_title_bg_color="#FAD7A0",
+        h3_title_border_color="#C0392B",
+        h3_title_text_color="#922B21",
         h3_title_font_size="17px",
-        code_bg_color="#FFEBEE",
-        code_border_color="#EF5350",
-        meta_text_color="#8D6E63",
+        code_bg_color="#FEF5E7",
+        code_border_color="#E67E22",
+        code_text_color="#922B21",
+        inline_code_bg_color="#FAD7A0",
+        inline_code_text_color="#C0392B",
+        paragraph_font_size="16px",
+        paragraph_line_height="1.8",
+        paragraph_color="#7B241C",
+        blockquote_bg_color="#FEF5E7",
+        blockquote_border_color="#E67E22",
+        blockquote_text_color="#A04000",
+        table_header_bg_color="#FAD7A0",
+        table_border_color="#E67E22",
+        link_color="#C0392B",
+        meta_text_color="#A04000",
         meta_font_size="12px",
         source_text_color="#A1887F",
         source_font_size="12px",
@@ -248,8 +313,13 @@ class CodeBlockFormatter:
         if min_indent == float('inf'):
             min_indent = 0
 
-        # Process lines - use <br> for line breaks and &nbsp; for spaces
-        # This is more compatible with WeChat editor than white-space:pre
+        # Get colors from config
+        bg_color = self.style_config.code_bg_color
+        border_color = self.style_config.code_border_color
+        text_color = getattr(self.style_config, 'code_text_color', '#212529')
+
+        # Process lines - use <pre> for better WeChat editor compatibility
+        # WeChat respects <pre> tag styles more than <div>
         processed_lines = []
         for i, line in enumerate(lines, 1):
             # Remove common indentation
@@ -260,29 +330,27 @@ class CodeBlockFormatter:
 
             # Escape HTML
             content = _escape_html(content)
-            # Replace spaces with &nbsp; for preservation (4 spaces = 1 indent)
+            # Replace spaces with &nbsp; for preservation
             content = content.replace('    ', '&nbsp;&nbsp;&nbsp;&nbsp;')
             content = content.replace('  ', '&nbsp;&nbsp;')
-            # Keep single space as is for word separation, but preserve leading spaces
-            # Use HTML entity for special chars that might break rendering
 
-            # Add line number
+            # Add line number with improved styling - use span with fixed-width font
             if show_line_numbers:
-                # Line number with styling
-                line_num = f'<span style="color:#999;display:inline-block;width:2.5em;text-align:right;margin-right:0.8em;">{i}</span>'
-                processed_lines.append(f'<div style="font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:13px;line-height:1.6;margin:2px 0;">{line_num}<span>{content}</span></div>')
+                # Use pre tag for each line to ensure font-size is respected
+                line_num = f'<span style="color:#868E96;display:inline-block;width:2.5em;text-align:right;margin-right:0.8em;font-size:12px;">{i}</span>'
+                processed_lines.append(f'{line_num}{content}')
             else:
-                processed_lines.append(f'<div style="font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:13px;line-height:1.6;margin:2px 0;">{content}</div>')
+                processed_lines.append(content)
 
-        # Join with empty string (divs are block elements)
-        code_content = ''.join(processed_lines)
+        # Join with newline - use <br> for line breaks since we're using pre
+        code_text = '<br>\n'.join(processed_lines)
 
-        # Outer table for border and background
+        # Outer container with pre tag for better font-size control
+        # Use pre tag with specific styling to prevent WeChat from overriding
         return (
-            f'<table width="100%" cellpadding="12" cellspacing="0" border="0" '
-            f'bgcolor="{self.style_config.code_bg_color.replace("#", "")}">'
-            f'<tr><td style="border:1px solid {self.style_config.code_border_color};">'
-            f'{code_content}'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">'
+            f'<tr><td style="background-color:{bg_color};border:1px solid {border_color};padding:16px;border-radius:8px;">'
+            f'<pre style="margin:0;padding:0;font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:13px;line-height:1.7;color:{text_color};white-space:pre-wrap;word-wrap:break-word;">{code_text}</pre>'
             f'</td></tr></table>'
         )
 
@@ -854,36 +922,55 @@ class MarkdownToWeChatConverter:
             return f'<h{level} style="font-size:{size}px;font-weight:bold;margin:14px 0 8px;color:{self.style_config.h3_title_text_color};">{text}</h{level}>'
 
     def _convert_paragraph(self, text: str, is_reference: bool = False) -> str:
-        """Convert paragraph to HTML."""
+        """Convert paragraph to HTML with improved styling."""
         text = self._inline_format(text)
         # Convert newlines to <br> tags for line breaks within paragraphs
-        # This preserves soft breaks in the original markdown
-        # Use only <br> without trailing \n to avoid extra whitespace in WeChat editor
         text = text.replace('\n', '<br>')
-        style = 'margin:12px 0;line-height:1.8;'
+
+        # Get styles from config
+        font_size = getattr(self.style_config, 'paragraph_font_size', '16px')
+        line_height = getattr(self.style_config, 'paragraph_line_height', '1.8')
+        text_color = getattr(self.style_config, 'paragraph_color', '#333333')
+
+        style = f'margin:16px 0;line-height:{line_height};font-size:{font_size};color:{text_color};letter-spacing:0.3px;text-align:justify;'
         if is_reference:
             style += 'font-size:0.85em;color:#888888;'
         return f'<p style="{style}">{text}</p>'
 
     def _convert_horizontal_rule(self) -> str:
-        """Convert horizontal rule to HTML using table for WeChat compatibility."""
-        return '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;"><tr><td height="1" bgcolor="#dddddd"></td></tr></table>'
+        """Convert horizontal rule to HTML with elegant styling."""
+        # Get border color from config or use default
+        border_color = getattr(self.style_config, 'table_border_color', '#DEE2E6')
+        return (
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0;">'
+            f'<tr><td style="border-top:1px solid {border_color};height:0;font-size:0;line-height:0;"></td></tr>'
+            f'</table>'
+        )
 
     def _convert_blockquote(self, text: str, is_reference: bool = False) -> str:
         """Convert blockquote to HTML using table for WeChat compatibility."""
         text = self._inline_format(text)
+        # Get styles from config
+        bg_color = getattr(self.style_config, 'blockquote_bg_color', '#F8F9FA')
+        border_color = getattr(self.style_config, 'blockquote_border_color', '#DEE2E6')
+        text_color = getattr(self.style_config, 'blockquote_text_color', '#6C757D')
+
         # Use table with left border for better WeChat editor compatibility
         return (
-            f'<table width="100%" cellpadding="8" cellspacing="0" border="0" bgcolor="f9f9f9" style="margin:12px 0;">'
-            f'<tr><td style="border-left:4px solid #dddddd;color:#666666;font-style:italic;">'
-            f'{text}'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">'
+            f'<tr><td style="background-color:{bg_color};padding:16px 20px;border-left:4px solid {border_color};border-radius:0 8px 8px 0;">'
+            f'<p style="color:{text_color};font-size:15px;line-height:1.8;margin:0;font-style:italic;">{text}</p>'
             f'</td></tr></table>'
         )
 
     def _convert_list(self, list_structure: List, is_ordered: bool, is_reference: bool = False) -> str:
-        """Convert list structure to HTML."""
+        """Convert list structure to HTML with improved styling."""
         tag = 'ol' if is_ordered else 'ul'
-        style = 'margin:12px 0;padding-left:24px;' + ('font-size:0.85em;color:#888888;' if is_reference else '')
+
+        # Get text color from config
+        text_color = getattr(self.style_config, 'paragraph_color', '#333333')
+
+        style = f'margin:16px 0;padding-left:28px;color:{text_color};' + ('font-size:0.85em;color:#888888;' if is_reference else '')
 
         items_html = []
         for text, nested, nested_ordered in list_structure:
@@ -891,16 +978,21 @@ class MarkdownToWeChatConverter:
 
             if nested:
                 nested_html = self._convert_list(nested, nested_ordered, is_reference)
-                items_html.append(f'<li style="margin:6px 0;line-height:1.7;">{item_text}{nested_html}</li>')
+                items_html.append(f'<li style="margin:10px 0;line-height:1.8;font-size:15px;">{item_text}{nested_html}</li>')
             else:
-                items_html.append(f'<li style="margin:6px 0;line-height:1.7;">{item_text}</li>')
+                items_html.append(f'<li style="margin:10px 0;line-height:1.8;font-size:15px;">{item_text}</li>')
 
         return f'<{tag} style="{style}">{"".join(items_html)}</{tag}>'
 
     def _convert_table(self, table_rows: List[Tuple[List[str], bool]], alignments: List[str], is_reference: bool = False) -> str:
-        """Convert table to HTML."""
+        """Convert table to HTML with improved styling."""
         if not table_rows:
             return ""
+
+        # Get styles from config
+        header_bg = getattr(self.style_config, 'table_header_bg_color', '#F1F3F5')
+        border_color = getattr(self.style_config, 'table_border_color', '#DEE2E6')
+        text_color = getattr(self.style_config, 'paragraph_color', '#333333')
 
         # Build table HTML
         header_html = ''
@@ -908,18 +1000,20 @@ class MarkdownToWeChatConverter:
 
         for idx, (cells, is_header) in enumerate(table_rows):
             row_cells = []
+            row_bg = '#FFFFFF' if idx % 2 == 0 else '#F8F9FA'  # Zebra striping
+
             for col_idx, cell in enumerate(cells):
                 align = alignments[col_idx] if col_idx < len(alignments) else 'left'
                 cell_text = self._inline_format(cell)
                 align_style = f'text-align:{align};'
-                padding = 'padding:10px 12px;'
-                border = 'border:1px solid #ddd;'
+                padding = 'padding:12px 16px;'
+                border = f'border:1px solid {border_color};'
 
                 if is_header:
-                    style = f'{padding}{border}{align_style}background:#f5f5f5;font-weight:bold;'
+                    style = f'{padding}{border}{align_style}background-color:{header_bg};font-weight:bold;color:{text_color};font-size:15px;'
                     row_cells.append(f'<th style="{style}">{cell_text}</th>')
                 else:
-                    style = f'{padding}{border}{align_style}'
+                    style = f'{padding}{border}{align_style}background-color:{row_bg};color:{text_color};font-size:14px;line-height:1.6;'
                     row_cells.append(f'<td style="{style}">{cell_text}</td>')
 
             row_html = f'<tr>{"".join(row_cells)}</tr>'
@@ -928,17 +1022,21 @@ class MarkdownToWeChatConverter:
             else:
                 body_html += row_html
 
-        # Combine
-        table_html = '<table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">'
+        # Combine with rounded corners container
+        table_content = '<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">'
         if header_html:
-            table_html += f'<thead>{header_html}</thead>'
+            table_content += f'<thead>{header_html}</thead>'
         if body_html:
-            table_html += f'<tbody>{body_html}</tbody>'
-        table_html += '</table>'
+            table_content += f'<tbody>{body_html}</tbody>'
+        table_content += '</table>'
 
-        # Return table directly without overflow wrapper
-        # Note: WeChat editor doesn't support overflow-x well
-        return table_html
+        # Wrap in container for better styling
+        return (
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;">'
+            f'<tr><td style="border-radius:8px;overflow:hidden;border:1px solid {border_color};">'
+            f'{table_content}'
+            f'</td></tr></table>'
+        )
 
     def _inline_format(self, text: str) -> str:
         """Apply inline formatting (bold, italic, code, links)."""
@@ -962,20 +1060,26 @@ class MarkdownToWeChatConverter:
         text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'<em>\1</em>', text)
 
         # Inline code: `code`
-        # Note: Avoid border-radius as WeChat editor may not support it well
+        # Use rounded corners and better colors from config
+        inline_code_bg = getattr(self.style_config, 'inline_code_bg_color', '#F1F3F5')
+        inline_code_color = getattr(self.style_config, 'inline_code_text_color', '#E83E8C')
+
         def code_replace(match):
             code = match.group(1)
-            return f'<code style="background:#f4f4f4;padding:2px 6px;font-family:SF Mono,monospace;font-size:0.9em;color:#c7254e;">{code}</code>'
+            return f'<code style="background-color:{inline_code_bg};padding:2px 6px;border-radius:3px;font-family:SF Mono,Monaco,monospace;font-size:0.9em;color:{inline_code_color};font-weight:500;">{code}</code>'
         text = re.sub(r'`([^`]+)`', code_replace, text)
 
         # Links: [text](url)
+        # Use link color from config with underline on hover effect (static)
+        link_color = getattr(self.style_config, 'link_color', '#0066CC')
+
         def link_replace(match):
             link_text = match.group(1)
             url = match.group(2)
             # Skip anchor links
             if url.startswith('#'):
                 return link_text
-            return f'<a href="{url}" style="color:#576b95;text-decoration:none;">{link_text}</a>'
+            return f'<a href="{url}" style="color:{link_color};text-decoration:none;font-weight:500;border-bottom:1px solid {link_color};">{link_text}</a>'
         text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', link_replace, text)
 
         # Colored text: **text**{color:#xxx} or [text]{color:#xxx}

@@ -81,6 +81,16 @@ def main():
         default="news",
         help="Article type: news (default) or newspic (小绿书)"
     )
+    parser.add_argument(
+        "--style",
+        choices=["academic_gray", "festival", "tech", "announcement"],
+        default="academic_gray",
+        help=("Visual style for the article (default: academic_gray). "
+              "academic_gray: 学术灰风格 (default), "
+              "festival: 节日快乐色彩系, "
+              "tech: 科技产品介绍色彩系, "
+              "announcement: 重大事情告知色彩系")
+    )
 
     args = parser.parse_args()
 
@@ -116,7 +126,8 @@ def main():
             summary=args.summary,
             cover_image=args.cover,
             author=args.author,
-            article_type=args.type
+            article_type=args.type,
+            style=args.style
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         sys.exit(0 if result.get("success") else 1)

@@ -5,16 +5,19 @@ from typing import Optional
 
 try:
     from .image_processor import ImageProcessor
-    from .parsers import ParseResult, ParserRegistry
+    from .parsers import ParseResult, ParserRegistry, get_available_styles
     from .wechat_client import WeChatAPIClient
 except ImportError:
     from image_processor import ImageProcessor
-    from parsers import ParseResult, ParserRegistry
+    from parsers import ParseResult, ParserRegistry, get_available_styles
     from wechat_client import WeChatAPIClient
 
 
 class ArticlePublisher:
     """Publish articles to WeChat drafts."""
+
+    # Available styles from MD2WeChat
+    STYLES = get_available_styles()
 
     def __init__(self, client: Optional[WeChatAPIClient] = None):
         self.client = client or WeChatAPIClient()
@@ -27,12 +30,32 @@ class ArticlePublisher:
         summary: Optional[str] = None,
         cover_image: Optional[str] = None,
         author: Optional[str] = None,
-        article_type: str = "news"
+        article_type: str = "news",
+        style: str = "academic_gray"
     ) -> dict:
-        """Publish an article from file."""
-        # Parse content
+        """Publish an article from file.
+
+        Args:
+            filepath: Path to markdown or HTML file
+            title: Override article title
+            summary: Override article summary
+            cover_image: Override cover image path
+            author: Article author name
+            article_type: "news" or "newspic"
+            style: Visual style - "academic_gray", "festival", "tech", or "announcement"
+        """
+        # Validate style
+        if style not in self.STYLES:
+            available = ", ".join(self.STYLES.keys())
+            return {
+                "success": False,
+                "error": f"Unknown style '{style}'. Available: {available}",
+                "code": "INVALID_STYLE",
+            }
+
+        # Parse content with style
         parser = self.parser_registry.get_parser(filepath)
-        result = parser.parse(filepath)
+        result = parser.parse(filepath, style=style)
 
         # Override with provided values
         final_title = (title or result.title)[:64]

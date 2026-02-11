@@ -6,6 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **WeChat Official Account Article Publisher** - a tool to publish Markdown or HTML articles to WeChat Official Account (微信公众号) drafts via API. It is designed as a Claude AI skill located in `skills/md2wechat/`.
 
+## Key Features
+
+- **Multiple Visual Styles**: 4 built-in styles (academic_gray, festival, tech, announcement)
+- **MD2WeChat Integration**: Enhanced Markdown rendering with code blocks, tables, and styling
+- **Official WeChat API**: Uses wechatpy SDK for reliable publishing
+
 ## Development Commands
 
 ### Testing
@@ -31,29 +37,45 @@ python skills/md2wechat/scripts/publish.py --markdown /path/to/article.md
 # Publish from HTML
 python skills/md2wechat/scripts/publish.py --html /path/to/article.html
 
-# With options
-python skills/md2wechat/scripts/publish.py --markdown article.md --type newspic
+# With style option
+python skills/md2wechat/scripts/publish.py --markdown article.md --style tech
+
+# With all options
+python skills/md2wechat/scripts/publish.py \
+  --markdown article.md \
+  --style tech \
+  --type news \
+  --title "Custom Title" \
+  --author "Author Name"
 ```
 
 ## Architecture
 
 ### Content Processing Pipeline
 ```
-Markdown/HTML File → Parser → Image Processing → API Client → WeChat Draft
+Markdown/HTML File → Parser → MD2WeChat Converter → Image Processing → API Client → WeChat Draft
 ```
 
 ### Key Components
 
+**`skills/md2wechat/lib/md2wechat/`** - MD2WeChat integration (adapted from Mapoet/MD2WeChat)
+- `MarkdownToWeChatConverter` - Core Markdown to WeChat HTML converter
+- `StyleConfig` - Visual style definitions
+- `STYLES` - Predefined styles (academic_gray, festival, tech, announcement)
+
 **`skills/md2wechat/scripts/publish.py`** - CLI entry point
+- Supports `--style` argument for visual style selection
 
 **`skills/md2wechat/scripts/publisher.py`** - Main publish orchestrator
 - `ArticlePublisher` - Coordinates parsing, image processing, and API calls
-- `publish()` - Main method to publish articles from files
+- `publish()` - Main method with `style` parameter
+- `STYLES` - Dictionary of available styles
 
 **`skills/md2wechat/scripts/parsers.py`** - Content parsers
-- `MarkdownParser` - Parses markdown files with WeChat-compatible HTML output
+- `MarkdownParser` - Uses MD2WeChat converter for WeChat-compatible HTML
 - `HTMLParser` - Parses existing HTML files
 - `ParserRegistry` - Plugin system for adding new parsers
+- `get_available_styles()` - Returns available style names
 
 **`skills/md2wechat/scripts/image_processor.py`** - Image handling
 - `ImageProcessor` - Uploads images to WeChat and replaces URLs
@@ -65,6 +87,15 @@ Markdown/HTML File → Parser → Image Processing → API Client → WeChat Dra
 - `Config` - Loads WECHAT_APPID and WECHAT_APP_SECRET from .env
 
 **`test_official_api.py`** - Test suite covering all modules
+
+### Visual Styles
+
+| Style | Description | Use Case |
+|-------|-------------|----------|
+| `academic_gray` | 学术灰风格，简洁专业 | Technical docs, research papers |
+| `festival` | 节日快乐色彩系，温暖红金 | Holiday greetings, celebrations |
+| `tech` | 科技蓝配色，现代感强 | Product launches, tech blogs |
+| `announcement` | 警示橙红配色，醒目突出 | Important notices, urgent updates |
 
 ### Image Handling Strategy
 - Local images: resolved relative to source file, uploaded via `material.add("image", f)`
@@ -86,8 +117,7 @@ Markdown/HTML File → Parser → Image Processing → API Client → WeChat Dra
 - Title max 64 characters (enforced by truncation)
 - Cover image is **required** - API call fails without it
 - Only verified WeChat Official Accounts can use the draft API
-- Code blocks converted to `<table>` with bgcolor for WeChat editor compatibility
-- Tables converted to text representation (WeChat doesn't support `<table>` for data)
+- MD2WeChat converter handles anchor links and HTML validation automatically
 
 ## Configuration
 
@@ -106,4 +136,11 @@ The API client returns structured results:
 Common error codes from WeChat:
 - `MISSING_COVER_IMAGE` - No cover image provided
 - `40001` - Invalid credentials (check AppID/Secret)
+- `40164` - IP not in whitelist
+- `45166` - Invalid content (anchor links or invalid HTML - fixed by MD2WeChat converter)
 - `404` - Draft API unavailable (account not verified)
+
+## Credits
+
+- **MD2WeChat**: Based on https://github.com/Mapoet/MD2WeChat (MIT License)
+- **WeChat API**: Uses wechatpy SDK

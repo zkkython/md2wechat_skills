@@ -67,8 +67,10 @@ def hello():
         assert "Section 1" in result.content, "Section 1 not found in content"
         assert "<strong>bold</strong>" in result.content, "Bold formatting not converted"
         assert result.cover_image == "https://example.com/image.jpg", "Cover image not extracted"
-        assert "def hello():" in result.content, "Code block not preserved"
-        assert "<table" in result.content, "Code block not converted to table"
+        # Code block should be present (may be HTML escaped or use &nbsp;)
+        assert ("def hello():" in result.content or "def&nbsp;hello():" in result.content), "Code block not preserved"
+        # Code block now uses table for WeChat editor compatibility
+        assert '<table' in result.content and "white-space" in result.content, "Code block not converted to styled table"
 
         print("✓ Markdown parsing test passed")
         test_file.unlink()

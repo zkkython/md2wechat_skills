@@ -65,7 +65,7 @@ check_python() {
 install_deps() {
     print_info "Installing Python dependencies..."
 
-    if pip3 install wechatpy requests; then
+    if pip3 install wechatpy; then
         print_success "Dependencies installed"
     else
         print_error "Failed to install dependencies"

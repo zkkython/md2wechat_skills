@@ -858,7 +858,8 @@ class MarkdownToWeChatConverter:
         text = self._inline_format(text)
         # Convert newlines to <br> tags for line breaks within paragraphs
         # This preserves soft breaks in the original markdown
-        text = text.replace('\n', '<br>\n')
+        # Use only <br> without trailing \n to avoid extra whitespace in WeChat editor
+        text = text.replace('\n', '<br>')
         style = 'margin:12px 0;line-height:1.8;'
         if is_reference:
             style += 'font-size:0.85em;color:#888888;'
@@ -944,11 +945,15 @@ class MarkdownToWeChatConverter:
         # Handle Markdown escape sequences first (before HTML escaping)
         # \# -> #, \* -> *, \_ -> _, etc.
         text = re.sub(r'\\([\#\*\_\[\]\(\)\`\\])', r'\1', text)
-        # Handle HTML entities like &#x20; (space)
+        # Handle HTML entities like &#x20; (space), &#x27; (')
         text = html.unescape(text)
 
         # Escape HTML first
         text = _escape_html(text)
+
+        # Unescape again to restore characters that shouldn't be escaped in content
+        # We want to keep < > & escaped for security, but allow quotes and apostrophes
+        text = text.replace('&#x27;', "'").replace('&#39;', "'")
 
         # Bold: **text**
         text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
@@ -983,12 +988,15 @@ class MarkdownToWeChatConverter:
         """Generate complete HTML document using table-based layout for WeChat editor compatibility."""
         parts = []
 
-        # Build header using table
+        # Build header using table with background in style attribute (not bgcolor)
+        # WeChat editor filters bgcolor attribute but supports style background-color
         if title:
-            header_bg = self.style_config.header_bg_color.replace("#", "")
+            header_bg = self.style_config.header_bg_color
             parts.append(
-                f'<table width="100%" cellpadding="20" cellspacing="0" border="0" bgcolor="{header_bg}" style="margin-bottom:16px;">'
-                f'<tr><td style="color:{self.style_config.header_text_color};font-size:{self.style_config.header_font_size};font-weight:bold;">'
+                f'<table width="100%" cellpadding="20" cellspacing="0" border="0" '
+                f'style="margin-bottom:16px;background-color:{header_bg};">'
+                f'<tr><td style="color:{self.style_config.header_text_color};'
+                f'font-size:{self.style_config.header_font_size};font-weight:bold;">'
                 f'{_escape_html(title)}'
                 f'</td></tr></table>'
             )
@@ -1023,8 +1031,8 @@ class MarkdownToWeChatConverter:
                 f'</td></tr></table>'
             )
 
-        # Wrap in outer table without border for cleaner look
-        # WeChat editor works better with simple table structure
-        full_html = f'<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td>{"".join(parts)}</td></tr></table>'
+        # Return content directly without outer table wrapper
+        # WeChat editor may render empty table cells with borders
+        full_html = "".join(parts)
 
         return full_html

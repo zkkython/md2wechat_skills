@@ -21,6 +21,8 @@ classifiers = [
 ]
 dependencies = [
     "wechatpy",
+    "cryptography",
+    "Crypto",
 ]
 
 [project.optional-dependencies]

@@ -248,7 +248,8 @@ class CodeBlockFormatter:
         if min_indent == float('inf'):
             min_indent = 0
 
-        # Process lines
+        # Process lines - use <br> for line breaks and &nbsp; for spaces
+        # This is more compatible with WeChat editor than white-space:pre
         processed_lines = []
         for i, line in enumerate(lines, 1):
             # Remove common indentation
@@ -259,32 +260,30 @@ class CodeBlockFormatter:
 
             # Escape HTML
             content = _escape_html(content)
-            # Replace spaces with &nbsp; for preservation
+            # Replace spaces with &nbsp; for preservation (4 spaces = 1 indent)
+            content = content.replace('    ', '&nbsp;&nbsp;&nbsp;&nbsp;')
             content = content.replace('  ', '&nbsp;&nbsp;')
-            content = content.replace(' ', '&nbsp;')
+            # Keep single space as is for word separation, but preserve leading spaces
+            # Use HTML entity for special chars that might break rendering
 
-            # Line number - using table-based layout for WeChat compatibility
+            # Add line number
             if show_line_numbers:
-                # Use table row instead of inline-block for better WeChat editor support
-                line_num = f'<td style="color:#999;width:2em;text-align:right;padding-right:1em;">{i}</td>'
-                processed_lines.append(f'<tr>{line_num}<td>{content}</td></tr>')
+                # Line number with styling
+                line_num = f'<span style="color:#999;display:inline-block;width:2.5em;text-align:right;margin-right:0.8em;">{i}</span>'
+                processed_lines.append(f'<div style="font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:13px;line-height:1.6;margin:2px 0;">{line_num}<span>{content}</span></div>')
             else:
-                processed_lines.append(f'<tr><td colspan="2">{content}</td></tr>')
+                processed_lines.append(f'<div style="font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:13px;line-height:1.6;margin:2px 0;">{content}</div>')
 
-        # Use table-based layout for better WeChat editor compatibility
-        # WeChat editor preserves table attributes better than CSS
-        code_table = (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" '
-            f'style="font-family:SF Mono,Monaco,monospace;font-size:13px;line-height:1.6;">'
-            f'{"".join(processed_lines)}</table>'
-        )
+        # Join with empty string (divs are block elements)
+        code_content = ''.join(processed_lines)
 
         # Outer table for border and background
         return (
             f'<table width="100%" cellpadding="12" cellspacing="0" border="0" '
             f'bgcolor="{self.style_config.code_bg_color.replace("#", "")}">'
             f'<tr><td style="border:1px solid {self.style_config.code_border_color};">'
-            f'{code_table}</td></tr></table>'
+            f'{code_content}'
+            f'</td></tr></table>'
         )
 
 
@@ -857,6 +856,9 @@ class MarkdownToWeChatConverter:
     def _convert_paragraph(self, text: str, is_reference: bool = False) -> str:
         """Convert paragraph to HTML."""
         text = self._inline_format(text)
+        # Convert newlines to <br> tags for line breaks within paragraphs
+        # This preserves soft breaks in the original markdown
+        text = text.replace('\n', '<br>\n')
         style = 'margin:12px 0;line-height:1.8;'
         if is_reference:
             style += 'font-size:0.85em;color:#888888;'
@@ -939,6 +941,12 @@ class MarkdownToWeChatConverter:
 
     def _inline_format(self, text: str) -> str:
         """Apply inline formatting (bold, italic, code, links)."""
+        # Handle Markdown escape sequences first (before HTML escaping)
+        # \# -> #, \* -> *, \_ -> _, etc.
+        text = re.sub(r'\\([\#\*\_\[\]\(\)\`\\])', r'\1', text)
+        # Handle HTML entities like &#x20; (space)
+        text = html.unescape(text)
+
         # Escape HTML first
         text = _escape_html(text)
 

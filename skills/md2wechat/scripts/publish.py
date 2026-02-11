@@ -91,6 +91,16 @@ def main():
               "tech: 科技产品介绍色彩系, "
               "announcement: 重大事情告知色彩系")
     )
+    parser.add_argument(
+        "--comment",
+        action="store_true",
+        help="Enable comments on the article (default: disabled)"
+    )
+    parser.add_argument(
+        "--fans-only-comment",
+        action="store_true",
+        help="If set with --comment, only fans can comment (default: everyone can comment)"
+    )
 
     args = parser.parse_args()
 
@@ -127,7 +137,9 @@ def main():
             cover_image=args.cover,
             author=args.author,
             article_type=args.type,
-            style=args.style
+            style=args.style,
+            comment_enabled=args.comment,
+            fans_only_comment=args.fans_only_comment
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         sys.exit(0 if result.get("success") else 1)

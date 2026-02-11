@@ -29,6 +29,7 @@ Publish Markdown or HTML content to WeChat Official Account drafts via API, with
   - Nested lists support
   - Styled blockquotes
 - **Automatic Image Upload**: Local and remote images uploaded to WeChat
+- **Comment Support**: Enable/disable comments, with option for fans-only commenting
 
 ## Testing
 
@@ -176,6 +177,14 @@ result = publisher.publish("/path/to/article.md")
 # With specific style
 result = publisher.publish("/path/to/article.md", style="tech")
 
+# With comments enabled
+result = publisher.publish(
+    "/path/to/article.md",
+    style="tech",
+    comment_enabled=True,
+    fans_only_comment=False  # True = only fans can comment
+)
+
 print(result)
 ```
 
@@ -261,6 +270,16 @@ python skills/md2wechat/scripts/publish.py \
   --type news|newspic \
   --title "Custom Title" \
   --author "Author Name"
+
+# Enable comments
+python skills/md2wechat/scripts/publish.py \
+  --markdown article.md \
+  --comment
+
+# Enable comments (fans only)
+python skills/md2wechat/scripts/publish.py \
+  --markdown article.md \
+  --comment --fans-only-comment
 ```
 
 **Features:**

@@ -11,6 +11,7 @@ This is a **WeChat Official Account Article Publisher** - a tool to publish Mark
 - **Multiple Visual Styles**: 4 built-in styles (academic_gray, festival, tech, announcement)
 - **MD2WeChat Integration**: Enhanced Markdown rendering with code blocks, tables, and styling
 - **Official WeChat API**: Uses wechatpy SDK for reliable publishing
+- **Comment Support**: Enable/disable comments, with option for fans-only commenting
 
 ## Development Commands
 
@@ -47,6 +48,16 @@ python skills/md2wechat/scripts/publish.py \
   --type news \
   --title "Custom Title" \
   --author "Author Name"
+
+# With comments enabled
+python skills/md2wechat/scripts/publish.py \
+  --markdown article.md \
+  --comment
+
+# Comments enabled, only fans can comment
+python skills/md2wechat/scripts/publish.py \
+  --markdown article.md \
+  --comment --fans-only-comment
 ```
 
 ## Architecture
@@ -68,7 +79,7 @@ Markdown/HTML File → Parser → MD2WeChat Converter → Image Processing → A
 
 **`skills/md2wechat/scripts/publisher.py`** - Main publish orchestrator
 - `ArticlePublisher` - Coordinates parsing, image processing, and API calls
-- `publish()` - Main method with `style` parameter
+- `publish()` - Main method with `style`, `comment_enabled`, `fans_only_comment` parameters
 - `STYLES` - Dictionary of available styles
 
 **`skills/md2wechat/scripts/parsers.py`** - Content parsers

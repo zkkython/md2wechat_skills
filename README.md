@@ -19,6 +19,7 @@ Publish Markdown or HTML articles to WeChat Official Account (微信公众号) d
 
 - **HTML Support**: Publish existing HTML files directly
 - **Image Upload**: Automatic upload of local and remote images to WeChat's media server
+- **Comment Support**: Enable/disable comments, with option for fans-only commenting
 - **Draft Only**: Never auto-publishes; articles are saved to drafts for manual review
 - **Official API**: Uses official WeChat API via `wechatpy` SDK
 
@@ -107,6 +108,12 @@ md2wechat publish --markdown article.md --type newspic
 
 # With custom title and style
 md2wechat publish --markdown article.md --title "Custom Title" --style festival
+
+# Enable comments
+md2wechat publish --markdown article.md --comment
+
+# Enable comments (fans only)
+md2wechat publish --markdown article.md --comment --fans-only-comment
 ```
 
 ### Command Line (Source installation)
@@ -118,6 +125,12 @@ python skills/md2wechat/scripts/publish.py --markdown article.md
 # With style selection
 python skills/md2wechat/scripts/publish.py --markdown article.md --style tech
 python skills/md2wechat/scripts/publish.py --markdown article.md --style announcement
+
+# Enable comments
+python skills/md2wechat/scripts/publish.py --markdown article.md --comment
+
+# Enable comments (fans only)
+python skills/md2wechat/scripts/publish.py --markdown article.md --comment --fans-only-comment
 
 # View all options
 python skills/md2wechat/scripts/publish.py --help

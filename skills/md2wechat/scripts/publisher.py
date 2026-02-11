@@ -31,7 +31,9 @@ class ArticlePublisher:
         cover_image: Optional[str] = None,
         author: Optional[str] = None,
         article_type: str = "news",
-        style: str = "academic_gray"
+        style: str = "academic_gray",
+        comment_enabled: bool = True,
+        fans_only_comment: bool = False
     ) -> dict:
         """Publish an article from file.
 
@@ -43,6 +45,8 @@ class ArticlePublisher:
             author: Article author name
             article_type: "news" or "newspic"
             style: Visual style - "academic_gray", "festival", "tech", or "announcement"
+            comment_enabled: Whether to enable comments (default: False)
+            fans_only_comment: If True, only fans can comment; if False, everyone can comment (default: False)
         """
         # Validate style
         if style not in self.STYLES:
@@ -93,8 +97,8 @@ class ArticlePublisher:
             "thumb_media_id": thumb_media_id,
             "show_cover_pic": 1,
             "content_source_url": "",
-            "need_open_comment": 0,
-            "only_fans_can_comment": 0,
+            "need_open_comment": 1 if comment_enabled else 0,
+            "only_fans_can_comment": 1 if fans_only_comment else 0,
         }
 
         # Handle newspic type - limit images

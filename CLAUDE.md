@@ -58,7 +58,7 @@ Markdown/HTML File → Parser → MD2WeChat Converter → Image Processing → A
 
 ### Key Components
 
-**`skills/md2wechat/lib/md2wechat/`** - MD2WeChat integration (adapted from Mapoet/MD2WeChat)
+**`skills/md2wechat/libs/`** - MD2WeChat integration (adapted from Mapoet/MD2WeChat)
 - `MarkdownToWeChatConverter` - Core Markdown to WeChat HTML converter
 - `StyleConfig` - Visual style definitions
 - `STYLES` - Predefined styles (academic_gray, festival, tech, announcement)

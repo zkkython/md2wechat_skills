@@ -6,12 +6,12 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
 
-# Add lib directory to path for MD2WeChat
-_lib_path = Path(__file__).parent.parent / "lib"
+# Add libs directory to path for MD2WeChat
+_lib_path = Path(__file__).parent.parent / "libs"
 if str(_lib_path) not in sys.path:
     sys.path.insert(0, str(_lib_path))
 
-from md2wechat import MarkdownToWeChatConverter, STYLES
+from converter import MarkdownToWeChatConverter, STYLES
 
 
 class ContentParser(ABC):

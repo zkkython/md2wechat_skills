@@ -70,12 +70,12 @@ cp -r skills/md2wechat ~/.claude/skills/
 
 ```bash
 # After pip install
-md2wechat publish --markdown /path/to/article.md
-md2wechat publish --html /path/to/article.html
+md2wechat --markdown /path/to/article.md
+md2wechat --html /path/to/article.html
 
 # With style option
-md2wechat publish --markdown article.md --style tech
-md2wechat publish --markdown article.md --style festival --type newspic
+md2wechat --markdown article.md --style tech
+md2wechat --markdown article.md --style festival --type newspic
 ```
 
 ### Command Line (Source/Claude)

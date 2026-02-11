@@ -95,25 +95,25 @@ See [PUBLISHING.md](PUBLISHING.md) for detailed instructions.
 
 ```bash
 # Publish from markdown
-md2wechat publish --markdown article.md
+md2wechat --markdown article.md
 
 # Publish from HTML
-md2wechat publish --html article.html
+md2wechat --html article.html
 
 # Publish with visual style
-md2wechat publish --markdown article.md --style tech
+md2wechat --markdown article.md --style tech
 
 # Publish as 小绿书 (image-focused format)
-md2wechat publish --markdown article.md --type newspic
+md2wechat --markdown article.md --type newspic
 
 # With custom title and style
-md2wechat publish --markdown article.md --title "Custom Title" --style festival
+md2wechat --markdown article.md --title "Custom Title" --style festival
 
 # Enable comments
-md2wechat publish --markdown article.md --comment
+md2wechat --markdown article.md --comment
 
 # Enable comments (fans only)
-md2wechat publish --markdown article.md --comment --fans-only-comment
+md2wechat --markdown article.md --comment --fans-only-comment
 ```
 
 ### Command Line (Source installation)

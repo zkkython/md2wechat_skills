@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "md2wechat"
-version = "2.0.0"
+version = "2.0.1"
 description = "Publish Markdown/HTML articles to WeChat Official Account drafts via API"
 readme = "README.md"
 # License is specified in classifiers below

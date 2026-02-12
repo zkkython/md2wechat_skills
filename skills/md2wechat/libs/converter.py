@@ -559,9 +559,12 @@ class MarkdownToWeChatConverter:
                 text = hm.group(2).strip()
 
                 if level == 1:
-                    # H1 is ignored as section divider
-                    i += 1
-                    continue
+                    # H1 is treated as a heading (not ignored)
+                    item = ('heading', text, level)
+                    if cur:
+                        cur['items'].append(item)
+                    else:
+                        preface.append(item)
                 elif level == 2:
                     if cur:
                         sections.append(cur)
@@ -898,7 +901,17 @@ class MarkdownToWeChatConverter:
         """Convert heading to HTML."""
         text = self._inline_format(text)
 
-        if level == 2:
+        if level == 1:
+            # H1: Large centered heading with accent color
+            return (
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 20px;">'
+                f'<tr><td align="center">'
+                f'<h1 style="font-size:26px;font-weight:bold;color:{self.style_config.h2_title_text_color};margin:0;padding:0;line-height:1.4;">'
+                f'{text}'
+                f'</h1>'
+                f'</td></tr></table>'
+            )
+        elif level == 2:
             # H2: Use table for WeChat editor compatibility (avoid position:absolute)
             # Use white text on colored background for better visibility
             return (

@@ -83,7 +83,7 @@ class MarkdownParser(ContentParser):
         )
 
     def _extract_title(self, content: str, path: Path) -> str:
-        """Extract title from front matter or filename."""
+        """Extract title from front matter, H1 heading, or filename."""
         # Check front matter for title
         if content.startswith("---"):
             lines = content.split("\n")
@@ -94,6 +94,26 @@ class MarkdownParser(ContentParser):
                     title = line.split(":", 1)[1].strip().strip('"').strip("'")
                     if title:
                         return title[:64]
+
+        # Check for H1 heading (# Title)
+        lines = content.split("\n")
+        in_front_matter = False
+        for line in lines:
+            stripped = line.strip()
+            # Skip front matter
+            if stripped == "---":
+                in_front_matter = not in_front_matter
+                continue
+            if in_front_matter:
+                continue
+            # Check for H1
+            if stripped.startswith("# "):
+                title = stripped[2:].strip()
+                if title:
+                    return title[:64]
+            # Stop at first non-empty, non-comment line if not H1
+            if stripped and not stripped.startswith("#"):
+                break
 
         # Fall back to filename
         return path.stem.replace("_", " ").replace("-", " ").title()[:64]

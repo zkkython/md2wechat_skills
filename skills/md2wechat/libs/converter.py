@@ -869,7 +869,11 @@ class MarkdownToWeChatConverter:
                 item_type = item[0]
                 item_data = item[1:]
 
-                if item_type == 'paragraph':
+                if item_type == 'heading':
+                    text = item_data[0] if len(item_data) > 0 else ""
+                    lvl = item_data[1] if len(item_data) > 1 else 4
+                    html_parts.append(self._convert_heading(text, lvl, is_reference))
+                elif item_type == 'paragraph':
                     html_parts.append(self._convert_paragraph(item_data[0], is_reference))
                 elif item_type == 'code':
                     code = item_data[0] if len(item_data) > 0 else ""

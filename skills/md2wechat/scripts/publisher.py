@@ -57,12 +57,13 @@ class ArticlePublisher:
                 "code": "INVALID_STYLE",
             }
 
-        # Parse content with style
+        # Parse content with style (pass external title if provided)
         parser = self.parser_registry.get_parser(filepath)
-        result = parser.parse(filepath, style=style)
+        result = parser.parse(filepath, style=style, title=title if title is not None else None)
 
         # Override with provided values
-        final_title = (title or result.title)[:64]
+        # Use provided title if explicitly given, otherwise use extracted title
+        final_title = (title if title is not None else result.title)[:64]
         final_summary = (summary or result.summary or "")[:120]
 
         # Process images

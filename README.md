@@ -22,6 +22,7 @@ Publish Markdown or HTML articles to WeChat Official Account (微信公众号) d
 - **Comment Support**: Enable/disable comments, with option for fans-only commenting
 - **Draft Only**: Never auto-publishes; articles are saved to drafts for manual review
 - **Official API**: Uses official WeChat API via `wechatpy` SDK
+- **Web UI for Batch Upload**: Vue 3 + FastAPI web interface for batch publishing multiple articles
 
 ## Installation
 
@@ -146,6 +147,45 @@ Publish this markdown article to WeChat: article.md
 Use the tech style for this article
 ```
 
+### Web Interface (Batch Upload)
+
+For batch uploading multiple Markdown files, use the Web UI:
+
+```bash
+# 1. Install dependencies
+cd web/backend
+pip install -r requirements.txt
+
+cd ../frontend
+npm install
+
+# 2. Start development servers
+# Terminal 1 - Backend
+cd web/backend
+python main.py
+
+# Terminal 2 - Frontend
+cd web/frontend
+npm run dev
+
+# 3. Open browser at http://localhost:3000
+```
+
+**Features:**
+- Drag & drop multiple Markdown files
+- Visual style configuration panel
+- Serial processing with error skipping
+- Real-time upload progress and results
+- Failed item retry support
+
+**Production deployment:**
+```bash
+cd web/frontend
+npm run build      # Builds to backend/static/
+cd ../backend
+python main.py     # Serves at http://localhost:8000
+```
+
 ## Visual Styles
 
 | Style | Name | Description | Best For |
@@ -173,21 +213,39 @@ md2wechat/
 ├── test_official_api.py # Test suite
 ├── CLAUDE.md            # Claude Code guidance
 ├── install.sh           # Installation script
-└── skills/md2wechat/    # Claude skill
-    ├── SKILL.md         # Skill metadata & docs
-    ├── lib/
-    │   └── md2wechat/   # MD2WeChat integration
-    │       ├── __init__.py
-    │       └── converter.py
-    └── scripts/
-        ├── __init__.py         # Package exports
-        ├── __main__.py         # Module entry point
-        ├── publish.py          # CLI entry point
-        ├── config.py           # Configuration management
-        ├── wechat_client.py    # WeChat API client wrapper
-        ├── parsers.py          # Markdown/HTML parsers (uses MD2WeChat)
-        ├── image_processor.py  # Image upload handler
-        └── publisher.py        # Main publish orchestrator
+├── skills/md2wechat/    # Claude skill
+│   ├── SKILL.md         # Skill metadata & docs
+│   ├── lib/
+│   │   └── md2wechat/   # MD2WeChat integration
+│   │       ├── __init__.py
+│   │       └── converter.py
+│   └── scripts/
+│       ├── __init__.py         # Package exports
+│       ├── __main__.py         # Module entry point
+│       ├── publish.py          # CLI entry point
+│       ├── config.py           # Configuration management
+│       ├── wechat_client.py    # WeChat API client wrapper
+│       ├── parsers.py          # Markdown/HTML parsers (uses MD2WeChat)
+│       ├── image_processor.py  # Image upload handler
+│       └── publisher.py        # Main publish orchestrator
+└── web/                 # Web UI for batch upload
+    ├── README.md        # Web UI documentation
+    ├── backend/         # FastAPI backend
+    │   ├── main.py
+    │   └── requirements.txt
+    └── frontend/        # Vue 3 frontend
+        ├── index.html
+        ├── vite.config.js
+        ├── package.json
+        └── src/
+            ├── App.vue
+            ├── api.js
+            ├── main.js
+            └── components/
+                ├── ConfigPanel.vue
+                ├── FileUploader.vue
+                ├── FileList.vue
+                └── UploadResults.vue
 ```
 
 ## Supported Markdown

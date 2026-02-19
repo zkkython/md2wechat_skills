@@ -18,7 +18,7 @@ class ContentParser(ABC):
     """Abstract base class for content parsers."""
 
     @abstractmethod
-    def parse(self, filepath: str, style: str = "academic_gray") -> "ParseResult":
+    def parse(self, filepath: str, style: str = "academic_gray", title: Optional[str] = None) -> "ParseResult":
         """Parse file and return structured content."""
         pass
 
@@ -52,7 +52,7 @@ class MarkdownParser(ContentParser):
     def supports(self, filepath: str) -> bool:
         return filepath.lower().endswith('.md')
 
-    def parse(self, filepath: str, style: str = "academic_gray") -> ParseResult:
+    def parse(self, filepath: str, style: str = "academic_gray", title: Optional[str] = None) -> ParseResult:
         path = Path(filepath)
         if not path.exists():
             raise FileNotFoundError(f"File not found: {filepath}")
@@ -68,8 +68,9 @@ class MarkdownParser(ContentParser):
         # Use MD2WeChat converter
         converter = MarkdownToWeChatConverter(style=style, base_dir=str(path.parent))
 
-        # Extract title from front matter or filename
-        title = self._extract_title(content, path)
+        # Extract title from front matter or filename (if external title not provided)
+        if title is None:
+            title = self._extract_title(content, path)
 
         # Convert to HTML
         html_content = converter.convert(content, title=title)
@@ -159,20 +160,21 @@ class HTMLParser(ContentParser):
     def supports(self, filepath: str) -> bool:
         return filepath.lower().endswith('.html')
 
-    def parse(self, filepath: str, style: str = "academic_gray") -> ParseResult:
+    def parse(self, filepath: str, style: str = "academic_gray", title: Optional[str] = None) -> ParseResult:
         path = Path(filepath)
         if not path.exists():
             raise FileNotFoundError(f"File not found: {filepath}")
 
         content = path.read_text(encoding="utf-8")
 
-        # Extract title
-        title_match = re.search(r"<title[^>]*>([^<]+)</title>", content, re.IGNORECASE)
-        if title_match:
-            title = title_match.group(1).strip()
-        else:
-            h1_match = re.search(r"<h1[^>]*>([^<]+)</h1>", content, re.IGNORECASE)
-            title = h1_match.group(1).strip() if h1_match else path.stem
+        # Extract title (use external title if provided)
+        if title is None:
+            title_match = re.search(r"<title[^>]*>([^<]+)</title>", content, re.IGNORECASE)
+            if title_match:
+                title = title_match.group(1).strip()
+            else:
+                h1_match = re.search(r"<h1[^>]*>([^<]+)</h1>", content, re.IGNORECASE)
+                title = h1_match.group(1).strip() if h1_match else path.stem
 
         title = title[:64]
 

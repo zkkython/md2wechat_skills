@@ -16,6 +16,7 @@
           :files="files"
           @remove-file="removeFile"
           @clear-all="clearAll"
+          @images-attached="handleImagesAttached"
         />
         <UploadResults :results="results" v-if="results.length > 0" />
       </div>
@@ -64,15 +65,126 @@ const canUpload = computed(() => {
   return files.value.length > 0 && !uploading.value
 })
 
-const handleFilesSelected = (selectedFiles) => {
-  const mdFiles = selectedFiles.filter(f => f.name.endsWith('.md') || f.name.endsWith('.markdown'))
-  const existingNames = new Set(files.value.map(f => f.name))
+/**
+ * Extract local image references from markdown content.
+ * Filters out http/https URLs, returns only relative paths.
+ */
+const extractImages = (mdContent) => {
+  const regex = /!\[[^\]]*\]\(([^)]+)\)/g
+  const images = []
+  let match
+  while ((match = regex.exec(mdContent)) !== null) {
+    const imgPath = match[1]
+    // Skip remote URLs
+    if (/^https?:\/\//i.test(imgPath)) continue
+    // Skip data URIs
+    if (imgPath.startsWith('data:')) continue
+    const fileName = imgPath.split('/').pop()
+    images.push({
+      relativePath: imgPath,
+      fileName,
+      matchedFile: null,
+      status: 'missing'
+    })
+  }
+  return images
+}
 
-  mdFiles.forEach(file => {
-    if (!existingNames.has(file.name)) {
-      files.value.push(file)
-    }
+/**
+ * Read a File as text and return a Promise.
+ */
+const readFileAsText = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsText(file)
   })
+}
+
+/**
+ * Get the relative path of a file (from folder selection or drag-and-drop).
+ */
+const getRelativePath = (file) => file.webkitRelativePath || file._relativePath || ''
+
+/**
+ * Check if file is an image by extension.
+ */
+const isImageFile = (file) => /\.(png|jpe?g|gif|bmp|webp|svg|ico|tiff?)$/i.test(file.name)
+
+const handleFilesSelected = async (selectedFiles) => {
+  const allFiles = Array.from(selectedFiles)
+  const mdFiles = allFiles.filter(f => f.name.endsWith('.md') || f.name.endsWith('.markdown'))
+  const imageFiles = allFiles.filter(f => isImageFile(f))
+
+  // Detect folder mode: files have relative path info
+  const isFolderMode = allFiles.some(f => getRelativePath(f).includes('/'))
+
+  const existingNames = new Set(files.value.map(f => f.mdFile.name))
+
+  for (const file of mdFiles) {
+    if (existingNames.has(file.name)) continue
+    const content = await readFileAsText(file)
+    const requiredImages = extractImages(content)
+
+    // In folder mode, auto-match images by resolving relative paths
+    if (isFolderMode && requiredImages.length > 0 && imageFiles.length > 0) {
+      const mdRelPath = getRelativePath(file)
+      // Get directory of the md file: "project/sub/README.md" -> "project/sub"
+      const mdDir = mdRelPath.includes('/') ? mdRelPath.substring(0, mdRelPath.lastIndexOf('/')) : ''
+      const prefix = mdDir ? mdDir + '/' : ''
+
+      // Build a lookup map from relative path -> File for all image files
+      const imagePathMap = new Map()
+      for (const img of imageFiles) {
+        imagePathMap.set(getRelativePath(img), img)
+      }
+
+      for (const req of requiredImages) {
+        // Resolve: md dir + image relative path
+        const expectedPath = prefix + req.relativePath
+        const matched = imagePathMap.get(expectedPath)
+        if (matched) {
+          req.matchedFile = matched
+          req.status = 'matched'
+        }
+      }
+
+      // Fallback: match remaining by filename
+      const usedFiles = new Set(requiredImages.filter(r => r.status === 'matched').map(r => r.matchedFile))
+      for (const req of requiredImages) {
+        if (req.status === 'matched') continue
+        const matched = imageFiles.find(f => f.name === req.fileName && !usedFiles.has(f))
+        if (matched) {
+          req.matchedFile = matched
+          req.status = 'matched'
+          usedFiles.add(matched)
+        }
+      }
+    }
+
+    files.value.push({
+      mdFile: file,
+      requiredImages
+    })
+  }
+}
+
+const handleImagesAttached = (fileIndex, imageFiles) => {
+  const entry = files.value[fileIndex]
+  if (!entry) return
+
+  for (const imgFile of imageFiles) {
+    // Match by filename
+    for (const req of entry.requiredImages) {
+      if (req.status === 'matched') continue
+      if (req.fileName === imgFile.name) {
+        req.matchedFile = imgFile
+        req.status = 'matched'
+        break
+      }
+    }
+  }
 }
 
 const removeFile = (index) => {
@@ -93,12 +205,12 @@ const startUpload = async () => {
 
   for (let i = 0; i < files.value.length; i++) {
     currentIndex.value = i
-    const file = files.value[i]
+    const entry = files.value[i]
 
     try {
-      const result = await uploadFile(file, config.value)
+      const result = await uploadFile(entry.mdFile, entry.requiredImages, config.value)
       results.value.push({
-        fileName: file.name,
+        fileName: entry.mdFile.name,
         success: result.success,
         mediaId: result.data?.media_id,
         error: result.error,
@@ -106,7 +218,7 @@ const startUpload = async () => {
       })
     } catch (err) {
       results.value.push({
-        fileName: file.name,
+        fileName: entry.mdFile.name,
         success: false,
         error: err.message
       })

@@ -1,0 +1,47 @@
+name: 科技产品介绍色彩系
+header:
+  bg_color: "#1565C0"
+  text_color: "#FFFFFF"
+  font_size: "22px"
+card:
+  bg_color: "#E3F2FD"
+  border_color: "#42A5F5"
+  text_color: "#0D47A1"
+h2_h3_card:
+  bg_color: "#E8F4FD"
+  border_color: "#42A5F5"
+h2_title:
+  line_color: "#1565C0"
+  text_color: "#0D47A1"
+  font_size: "20px"
+h3_title:
+  bg_color: "#BBDEFB"
+  border_color: "#1565C0"
+  text_color: "#0D47A1"
+  font_size: "17px"
+code:
+  bg_color: "#E3F2FD"
+  border_color: "#64B5F6"
+  text_color: "#0D47A1"
+inline_code:
+  bg_color: "#BBDEFB"
+  text_color: "#1565C0"
+paragraph:
+  font_size: "16px"
+  line_height: "1.8"
+  color: "#0D47A1"
+blockquote:
+  bg_color: "#E3F2FD"
+  border_color: "#64B5F6"
+  text_color: "#1565C0"
+table:
+  header_bg_color: "#BBDEFB"
+  border_color: "#64B5F6"
+link:
+  color: "#0277BD"
+meta:
+  text_color: "#546E7A"
+  font_size: "13px"
+source:
+  text_color: "#78909C"
+  font_size: "12px"

@@ -1,0 +1,47 @@
+name: WeChat 主题
+header:
+  bg_color: "#07C160"
+  text_color: "#FFFFFF"
+  font_size: "22px"
+card:
+  bg_color: "#f6f6f6"
+  border_color: "#f6f6f6"
+  text_color: "#232323"
+h2_h3_card:
+  bg_color: "#f6f6f6"
+  border_color: "#f6f6f6"
+h2_title:
+  line_color: "#07C160"
+  text_color: "#0B7D45"
+  font_size: "20px"
+h3_title:
+  bg_color: "#EAFBF3"
+  border_color: "#EAFBF3"
+  text_color: "#0B7D45"
+  font_size: "17px"
+code:
+  bg_color: "#1E2523"
+  border_color: "#34443E"
+  text_color: "#E8FFF2"
+inline_code:
+  bg_color: "#DFF6EA"
+  text_color: "#0B7D45"
+paragraph:
+  font_size: "16px"
+  line_height: "1.8"
+  color: "#232323"
+blockquote:
+  bg_color: "#F0FAF5"
+  border_color: "#F0FAF5"
+  text_color: "#1F6B46"
+table:
+  header_bg_color: "#DFF6EA"
+  border_color: "#DFF6EA"
+link:
+  color: "#05A851"
+meta:
+  text_color: "#6B7C74"
+  font_size: "13px"
+source:
+  text_color: "#7E8D86"
+  font_size: "12px"

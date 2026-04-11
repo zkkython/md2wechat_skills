@@ -11,7 +11,7 @@ _lib_path = Path(__file__).parent.parent / "libs"
 if str(_lib_path) not in sys.path:
     sys.path.insert(0, str(_lib_path))
 
-from converter import MarkdownToWeChatConverter, STYLES
+from converter import MarkdownToWeChatConverter, get_available_styles
 
 
 class ContentParser(ABC):
@@ -72,8 +72,8 @@ class MarkdownParser(ContentParser):
         if title is None:
             title = self._extract_title(content, path)
 
-        # Convert to HTML
-        html_content = converter.convert(content, title=title)
+        # Convert to HTML. Title is extracted for publishing metadata, not injected into body.
+        html_content = converter.convert(content)
 
         return ParseResult(
             title=title,
@@ -232,8 +232,3 @@ class ParserRegistry:
     def register(self, parser: ContentParser) -> None:
         """Register a new parser."""
         self._parsers.append(parser)
-
-
-def get_available_styles() -> dict[str, str]:
-    """Get available style names and descriptions."""
-    return {name: config.name for name, config in STYLES.items()}

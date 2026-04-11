@@ -1,0 +1,47 @@
+name: 学术灰风格
+header:
+  bg_color: "#2C3E50"
+  text_color: "#FFFFFF"
+  font_size: "22px"
+card:
+  bg_color: "#FFFFFF"
+  border_color: "#E0E0E0"
+  text_color: "#2C3E50"
+h2_h3_card:
+  bg_color: "#FAFAFA"
+  border_color: "#E8E8E8"
+h2_title:
+  line_color: "#34495E"
+  text_color: "#2C3E50"
+  font_size: "20px"
+h3_title:
+  bg_color: "#ECF0F1"
+  border_color: "#34495E"
+  text_color: "#34495E"
+  font_size: "17px"
+code:
+  bg_color: "#F8F9FA"
+  border_color: "#E9ECEF"
+  text_color: "#2C3E50"
+inline_code:
+  bg_color: "#F1F3F5"
+  text_color: "#C0392B"
+paragraph:
+  font_size: "16px"
+  line_height: "1.8"
+  color: "#2C3E50"
+blockquote:
+  bg_color: "#F8F9FA"
+  border_color: "#BDC3C7"
+  text_color: "#5D6D7E"
+table:
+  header_bg_color: "#ECF0F1"
+  border_color: "#BDC3C7"
+link:
+  color: "#2980B9"
+meta:
+  text_color: "#7F8C8D"
+  font_size: "13px"
+source:
+  text_color: "#95A5A6"
+  font_size: "12px"

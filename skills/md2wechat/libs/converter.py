@@ -8,8 +8,29 @@ import base64
 import mimetypes
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
 import html
+
+from pygments import lex
+from pygments.lexers import get_lexer_by_name
+from pygments.token import Token
+from pygments.util import ClassNotFound
+
+try:
+    from .themes import (
+        StyleConfig,
+        get_available_styles,
+        get_default_style,
+        get_theme_registry,
+        load_themes,
+    )
+except ImportError:
+    from themes import (
+        StyleConfig,
+        get_available_styles,
+        get_default_style,
+        get_theme_registry,
+        load_themes,
+    )
 
 
 def _escape_html(text: str) -> str:
@@ -21,206 +42,13 @@ def _escape_html_text(text: str) -> str:
     return html.escape(text, quote=False)
 
 
-@dataclass
-class StyleConfig:
-    """Style configuration for WeChat HTML output."""
-    name: str
-    # Header styles
-    header_bg_color: str = "#3C3C3C"
-    header_text_color: str = "#FFFFFF"
-    header_font_size: str = "20px"
-    # Card styles
-    card_bg_color: str = "#FFFFFF"
-    card_border_color: str = "#D9D9D9"
-    card_text_color: str = "#333333"
-    # H2/H3 card styles
-    h2_h3_card_bg_color: str = "#FAFAFA"  # Solid color for WeChat editor compatibility
-    h2_h3_card_border_color: str = "#E8E8E8"
-    # H2 title styles
-    h2_title_line_color: str = "#333333"
-    h2_title_text_color: str = "#333333"
-    h2_title_font_size: str = "18px"
-    # H3 title styles
-    h3_title_bg_color: str = "#F5F5F5"
-    h3_title_border_color: str = "#3C3C3C"
-    h3_title_text_color: str = "#333333"
-    h3_title_font_size: str = "16px"
-    # Code block styles
-    code_bg_color: str = "#F8F9FA"
-    code_border_color: str = "#E9ECEF"
-    code_text_color: str = "#212529"
-    # Inline code styles
-    inline_code_bg_color: str = "#F1F3F5"
-    inline_code_text_color: str = "#E83E8C"
-    # Paragraph styles
-    paragraph_font_size: str = "16px"
-    paragraph_line_height: str = "1.75"
-    paragraph_color: str = "#333333"
-    # Blockquote styles
-    blockquote_bg_color: str = "#F8F9FA"
-    blockquote_border_color: str = "#DEE2E6"
-    blockquote_text_color: str = "#6C757D"
-    # Table styles
-    table_header_bg_color: str = "#F1F3F5"
-    table_border_color: str = "#DEE2E6"
-    # Link styles
-    link_color: str = "#0066CC"
-    # Meta info styles
-    meta_text_color: str = "#888888"
-    meta_font_size: str = "12px"
-    # Source styles
-    source_text_color: str = "#999999"
-    source_font_size: str = "12px"
+def _has_visible_html_content(fragment: str) -> bool:
+    """Return True when an HTML fragment contains visible content, not just empty tags/whitespace."""
+    text_only = re.sub(r'<[^>]+>', '', fragment)
+    text_only = html.unescape(text_only).strip()
+    return bool(text_only)
 
-
-# Predefined styles
-# Note: Using hex colors only (no rgba) for WeChat editor compatibility
-STYLES = {
-    "academic_gray": StyleConfig(
-        name="学术灰风格",
-        header_bg_color="#2C3E50",
-        header_text_color="#FFFFFF",
-        header_font_size="22px",
-        card_bg_color="#FFFFFF",
-        card_border_color="#E0E0E0",
-        card_text_color="#2C3E50",
-        h2_h3_card_bg_color="#FAFAFA",
-        h2_h3_card_border_color="#E8E8E8",
-        h2_title_line_color="#34495E",
-        h2_title_text_color="#2C3E50",
-        h2_title_font_size="20px",
-        h3_title_bg_color="#ECF0F1",
-        h3_title_border_color="#34495E",
-        h3_title_text_color="#34495E",
-        h3_title_font_size="17px",
-        code_bg_color="#F8F9FA",
-        code_border_color="#E9ECEF",
-        code_text_color="#2C3E50",
-        inline_code_bg_color="#F1F3F5",
-        inline_code_text_color="#C0392B",
-        paragraph_font_size="16px",
-        paragraph_line_height="1.8",
-        paragraph_color="#2C3E50",
-        blockquote_bg_color="#F8F9FA",
-        blockquote_border_color="#BDC3C7",
-        blockquote_text_color="#5D6D7E",
-        table_header_bg_color="#ECF0F1",
-        table_border_color="#BDC3C7",
-        link_color="#2980B9",
-        meta_text_color="#7F8C8D",
-        meta_font_size="13px",
-        source_text_color="#95A5A6",
-        source_font_size="12px",
-    ),
-    "festival": StyleConfig(
-        name="节日快乐色彩系",
-        header_bg_color="#E74C3C",
-        header_text_color="#FFFFFF",
-        header_font_size="22px",
-        card_bg_color="#FFF8E1",
-        card_border_color="#F39C12",
-        card_text_color="#5D4037",
-        h2_h3_card_bg_color="#FFFDE7",
-        h2_h3_card_border_color="#F39C12",
-        h2_title_line_color="#E74C3C",
-        h2_title_text_color="#C0392B",
-        h2_title_font_size="20px",
-        h3_title_bg_color="#FFE082",
-        h3_title_border_color="#E74C3C",
-        h3_title_text_color="#C0392B",
-        h3_title_font_size="17px",
-        code_bg_color="#FFF8E1",
-        code_border_color="#F39C12",
-        code_text_color="#5D4037",
-        inline_code_bg_color="#FFECB3",
-        inline_code_text_color="#E65100",
-        paragraph_font_size="16px",
-        paragraph_line_height="1.8",
-        paragraph_color="#4E342E",
-        blockquote_bg_color="#FFF8E1",
-        blockquote_border_color="#FFB74D",
-        blockquote_text_color="#6D4C41",
-        table_header_bg_color="#FFE082",
-        table_border_color="#FFB74D",
-        link_color="#D84315",
-        meta_text_color="#8D6E63",
-        meta_font_size="13px",
-        source_text_color="#A1887F",
-        source_font_size="12px",
-    ),
-    "tech": StyleConfig(
-        name="科技产品介绍色彩系",
-        header_bg_color="#1565C0",
-        header_text_color="#FFFFFF",
-        header_font_size="22px",
-        card_bg_color="#E3F2FD",
-        card_border_color="#42A5F5",
-        card_text_color="#0D47A1",
-        h2_h3_card_bg_color="#E8F4FD",
-        h2_h3_card_border_color="#42A5F5",
-        h2_title_line_color="#1565C0",
-        h2_title_text_color="#0D47A1",
-        h2_title_font_size="20px",
-        h3_title_bg_color="#BBDEFB",
-        h3_title_border_color="#1565C0",
-        h3_title_text_color="#0D47A1",
-        h3_title_font_size="17px",
-        code_bg_color="#E3F2FD",
-        code_border_color="#64B5F6",
-        code_text_color="#0D47A1",
-        inline_code_bg_color="#BBDEFB",
-        inline_code_text_color="#1565C0",
-        paragraph_font_size="16px",
-        paragraph_line_height="1.8",
-        paragraph_color="#0D47A1",
-        blockquote_bg_color="#E3F2FD",
-        blockquote_border_color="#64B5F6",
-        blockquote_text_color="#1565C0",
-        table_header_bg_color="#BBDEFB",
-        table_border_color="#64B5F6",
-        link_color="#0277BD",
-        meta_text_color="#546E7A",
-        meta_font_size="13px",
-        source_text_color="#78909C",
-        source_font_size="12px",
-    ),
-    "announcement": StyleConfig(
-        name="重大事情告知色彩系",
-        header_bg_color="#C0392B",
-        header_text_color="#FFFFFF",
-        header_font_size="22px",
-        card_bg_color="#FEF5E7",
-        card_border_color="#E67E22",
-        card_text_color="#922B21",
-        h2_h3_card_bg_color="#FEF9E7",
-        h2_h3_card_border_color="#E67E22",
-        h2_title_line_color="#C0392B",
-        h2_title_text_color="#922B21",
-        h2_title_font_size="20px",
-        h3_title_bg_color="#FAD7A0",
-        h3_title_border_color="#C0392B",
-        h3_title_text_color="#922B21",
-        h3_title_font_size="17px",
-        code_bg_color="#FEF5E7",
-        code_border_color="#E67E22",
-        code_text_color="#922B21",
-        inline_code_bg_color="#FAD7A0",
-        inline_code_text_color="#C0392B",
-        paragraph_font_size="16px",
-        paragraph_line_height="1.8",
-        paragraph_color="#7B241C",
-        blockquote_bg_color="#FEF5E7",
-        blockquote_border_color="#E67E22",
-        blockquote_text_color="#A04000",
-        table_header_bg_color="#FAD7A0",
-        table_border_color="#E67E22",
-        link_color="#C0392B",
-        meta_text_color="#A04000",
-        meta_font_size="12px",
-        source_text_color="#A1887F",
-        source_font_size="12px",
-    ),
-}
+STYLES = load_themes()
 
 
 class MarkdownParser:
@@ -294,8 +122,29 @@ class MarkdownParser:
 class CodeBlockFormatter:
     """Format code blocks for WeChat."""
 
+    LANGUAGE_ALIASES = {
+        "js": "javascript",
+        "jsx": "javascript",
+        "ts": "typescript",
+        "tsx": "tsx",
+        "sh": "bash",
+        "shell": "bash",
+        "zsh": "bash",
+        "py": "python",
+        "yml": "yaml",
+    }
+
+    TOKEN_COLORS = {
+        "keyword": "#C678DD",
+        "string": "#98C379",
+        "comment": "#7F848E",
+        "number": "#D19A66",
+        "function": "#61AFEF",
+        "operator": "#56B6C2",
+    }
+
     def __init__(self, style_config: Optional[StyleConfig] = None):
-        self.style_config = style_config or STYLES["academic_gray"]
+        self.style_config = style_config or get_default_style()
 
     def format_code_block(self, code: str, language: str = "", show_line_numbers: bool = True) -> str:
         """Format code block with proper indentation and optional line numbers."""
@@ -322,29 +171,24 @@ class CodeBlockFormatter:
         border_color = self.style_config.code_border_color
         text_color = getattr(self.style_config, 'code_text_color', '#212529')
 
-        # Process lines - use <pre> for better WeChat editor compatibility
-        # WeChat respects <pre> tag styles more than <div>
-        processed_lines = []
-        for i, line in enumerate(lines, 1):
-            # Remove common indentation
+        normalized_lines = []
+        for line in lines:
             if len(line) >= min_indent:
-                content = line[min_indent:]
+                normalized_lines.append(line[min_indent:])
             else:
-                content = line
+                normalized_lines.append(line)
 
-            # Escape HTML for text node (keep quotes for better WeChat rendering in code blocks)
-            content = _escape_html_text(content)
-            # Replace spaces with &nbsp; for preservation
-            content = content.replace('    ', '&nbsp;&nbsp;&nbsp;&nbsp;')
-            content = content.replace('  ', '&nbsp;&nbsp;')
+        highlighted_lines = self._highlight_lines("\n".join(normalized_lines), language)
+        if highlighted_lines is None:
+            processed_lines = [self._render_plain_line(line) for line in normalized_lines]
+        else:
+            processed_lines = highlighted_lines
 
-            # Add line number with improved styling - use span with fixed-width font
-            if show_line_numbers:
-                # Use pre tag for each line to ensure font-size is respected
-                line_num = f'<span style="color:#868E96;display:inline-block;width:2.5em;text-align:right;margin-right:0.8em;font-size:12px;">{i}</span>'
-                processed_lines.append(f'{line_num}{content}')
-            else:
-                processed_lines.append(content)
+        if show_line_numbers:
+            processed_lines = [
+                f'<span style="color:#868E96;display:inline-block;width:2.5em;text-align:right;margin-right:0.8em;font-size:12px;">{i}</span>{line}'
+                for i, line in enumerate(processed_lines, 1)
+            ]
 
         # Join with newline - use <br> for line breaks since we're using pre
         code_text = '<br>\n'.join(processed_lines)
@@ -352,11 +196,75 @@ class CodeBlockFormatter:
         # Outer container with pre tag for better font-size control
         # Use pre tag with specific styling to prevent WeChat from overriding
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">'
-            f'<tr><td style="background-color:{bg_color};border:1px solid {border_color};padding:16px;border-radius:8px;">'
-            f'<pre style="margin:0;padding:0;font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:13px;line-height:1.7;color:{text_color};white-space:pre-wrap;word-wrap:break-word;">{code_text}</pre>'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;background:none;border:none !important;">'
+            f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
+            f'<pre style="display:block;margin:0;padding:16px;background-color:{bg_color};border:1px solid {border_color};font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1;color:{text_color};white-space:pre-wrap;word-wrap:break-word;">{code_text}</pre>'
             f'</td></tr></table>'
         )
+
+    def _highlight_lines(self, code: str, language: str) -> Optional[List[str]]:
+        normalized_language = self._normalize_language(language)
+        if not normalized_language:
+            return None
+
+        try:
+            lexer = get_lexer_by_name(normalized_language)
+        except ClassNotFound:
+            return None
+
+        rendered_lines = [""]
+        for token_type, value in lex(code, lexer):
+            if not value:
+                continue
+
+            color = self._get_token_color(token_type)
+            parts = value.split('\n')
+            for index, part in enumerate(parts):
+                if part:
+                    rendered_lines[-1] += self._render_token_part(part, color)
+                if index < len(parts) - 1:
+                    rendered_lines.append("")
+
+        while rendered_lines and not rendered_lines[-1]:
+            rendered_lines.pop()
+
+        return rendered_lines or [""]
+
+    def _normalize_language(self, language: str) -> str:
+        if not language:
+            return ""
+        normalized = language.strip().lower()
+        return self.LANGUAGE_ALIASES.get(normalized, normalized)
+
+    def _get_token_color(self, token_type) -> Optional[str]:
+        if token_type in Token.Comment:
+            return self.TOKEN_COLORS["comment"]
+        if token_type in Token.Keyword:
+            return self.TOKEN_COLORS["keyword"]
+        if token_type in Token.String:
+            return self.TOKEN_COLORS["string"]
+        if token_type in Token.Number:
+            return self.TOKEN_COLORS["number"]
+        if token_type in Token.Name.Function or token_type in Token.Name.Class:
+            return self.TOKEN_COLORS["function"]
+        if token_type in Token.Operator or token_type in Token.Punctuation:
+            return self.TOKEN_COLORS["operator"]
+        return None
+
+    def _render_plain_line(self, line: str) -> str:
+        return self._preserve_spacing(_escape_html_text(line))
+
+    def _render_token_part(self, text: str, color: Optional[str]) -> str:
+        rendered = self._preserve_spacing(_escape_html_text(text))
+        if color:
+            return f'<span style="color:{color};">{rendered}</span>'
+        return rendered
+
+    def _preserve_spacing(self, text: str) -> str:
+        text = text.replace('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
+        text = text.replace('    ', '&nbsp;&nbsp;&nbsp;&nbsp;')
+        text = text.replace('  ', '&nbsp;&nbsp;')
+        return text
 
 
 class ImageProcessor:
@@ -375,8 +283,8 @@ class ImageProcessor:
         # Use table for center alignment (better WeChat editor compatibility)
         # Note: width="100%" on img helps ensure proper sizing in WeChat
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">'
-            f'<tr><td align="center">'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;background:none;border:none !important;">'
+            f'<tr style="border:none !important;"><td align="center" style="padding:0;border:none !important;">'
             f'<img src="{src}"{alt_attr}{title_attr} width="100%" style="display:block;" />'
             f'</td></tr></table>'
         )
@@ -420,10 +328,11 @@ class MarkdownToWeChatConverter:
             style: Style name (academic_gray, festival, tech, announcement)
             base_dir: Base directory for resolving image paths
         """
-        if style not in STYLES:
-            raise ValueError(f"Unknown style: {style}. Available: {list(STYLES.keys())}")
+        registry = get_theme_registry()
+        if not registry.theme_exists(style):
+            raise ValueError(f"Unknown style: {style}. Available: {list(registry.list_themes().keys())}")
 
-        self.style_config = STYLES[style]
+        self.style_config = registry.get_theme(style)
         self.image_processor = ImageProcessor(base_dir)
         self.code_formatter = CodeBlockFormatter(self.style_config)
         self.image_counter = 0
@@ -442,7 +351,6 @@ class MarkdownToWeChatConverter:
         """
         # Parse markdown
         parser = MarkdownParser(md_content)
-        md_title = parser.get_front_matter("title", title)
         md_date = parser.get_front_matter("date", "")
         tags = parser.get_front_matter("tags", [])
         if isinstance(tags, str):
@@ -456,7 +364,7 @@ class MarkdownToWeChatConverter:
         html_body = self._convert_body(parser.body)
 
         # Generate full HTML
-        return self._generate_html(md_title, md_date, tags, html_body, source or permalink)
+        return self._generate_html(md_date, tags, html_body, source or permalink)
 
     def _convert_body(self, md_body: str) -> str:
         """Convert Markdown body to HTML."""
@@ -878,15 +786,15 @@ class MarkdownToWeChatConverter:
                 if is_reference:
                     # Reference section with lighter text
                     html_parts.append(
-                        f'<table width="100%" cellpadding="12" cellspacing="0" border="0" bgcolor="{card_bg}">'
-                        f'<tr><td style="border:1px solid {self.style_config.h2_h3_card_border_color};line-height:1.9;font-size:0.85em;color:#888888;">'
-                        f'{card_html}</td></tr></table>'
+                        f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{card_bg}" style="background:none;border:none !important;">'
+                        f'<tr style="border:none !important;"><td style="padding:0;border:none !important;font-size:0.85em;color:#888888;">'
+                        f'<div style="padding:0px;border:none !important;">{card_html}</div></td></tr></table>'
                     )
                 else:
                     html_parts.append(
-                        f'<table width="100%" cellpadding="12" cellspacing="0" border="0" bgcolor="{card_bg}">'
-                        f'<tr><td style="border:1px solid {self.style_config.h2_h3_card_border_color};line-height:1.9;">'
-                        f'{card_html}</td></tr></table>'
+                        f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{card_bg}" style="background:none;border:none !important;">'
+                        f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
+                        f'<div style="padding:0px;border:none !important;">{card_html}</div></td></tr></table>'
                     )
         else:
             # Non-card content
@@ -929,39 +837,38 @@ class MarkdownToWeChatConverter:
     def _convert_heading(self, text: str, level: int, is_reference: bool = False) -> str:
         """Convert heading to HTML."""
         text = self._inline_format(text)
+        paragraph_font_size = getattr(self.style_config, 'paragraph_font_size', '16px')
 
         if level == 1:
             # H1: Large centered heading with accent color
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 20px;">'
-                f'<tr><td align="center">'
-                f'<h1 style="font-size:26px;font-weight:bold;color:{self.style_config.h2_title_text_color};margin:0;padding:0;line-height:1.4;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0px;background:none;border:none !important;">'
+                f'<tr style="border:none !important;"><td align="center" style="border:none !important;padding:0;">'
+                f'<h1 style="font-size:20px;font-weight:bold;color:{self.style_config.h2_title_text_color};margin:0;padding:0;">'
                 f'{text}'
                 f'</h1>'
                 f'</td></tr></table>'
             )
         elif level == 2:
-            # H2: Use table for WeChat editor compatibility (avoid position:absolute)
-            # Use white text on colored background for better visibility
+            # H2: Use table for WeChat editor compatibility.
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 16px;">'
-                f'<tr><td align="center" style="border-bottom:2px solid {self.style_config.h2_title_line_color};padding-bottom:8px;">'
-                f'<span style="background:{self.style_config.h2_title_line_color};color:#FFFFFF;padding:6px 20px;font-size:{self.style_config.h2_title_font_size};font-weight:bold;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0px;background:none;border:none !important;">'
+                f'<tr style="border:none !important;"><td align="center" style="border:none !important;padding:0;">'
+                f'<span style="display:inline-block;margin-bottom:8px;background:none;color:{self.style_config.h2_title_text_color};padding:6px 20px;font-size:16px;font-weight:bold;border-radius:8px;">'
                 f'{text}</span>'
                 f'</td></tr></table>'
             )
         elif level == 3:
             # H3: Use table for left-border style (avoid border-radius)
             return (
-                f'<table width="100%" cellpadding="8" cellspacing="0" border="0" bgcolor="{self.style_config.h3_title_bg_color.replace("#", "")}" style="margin:18px 0 12px;">'
-                f'<tr><td style="border-left:4px solid {self.style_config.h3_title_border_color};font-size:{self.style_config.h3_title_font_size};font-weight:bold;color:{self.style_config.h3_title_text_color};">'
-                f'{text}'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{self.style_config.h3_title_bg_color.replace("#", "")}" style="margin:0px;background:none;border:none !important;">'
+                f'<tr style="border:none !important;"><td style="border:none !important;padding:0;">'
+                f'<span style="display:block;padding:8px 8px 8px 0px;font-size:{paragraph_font_size};font-weight:bold;color:{self.style_config.h3_title_text_color};">{text}</span>'
                 f'</td></tr></table>'
             )
         else:
             # H4+
-            size = max(14, 18 - (level - 4) * 2)
-            return f'<h{level} style="font-size:{size}px;font-weight:bold;margin:14px 0 8px;color:{self.style_config.h3_title_text_color};">{text}</h{level}>'
+            return f'<h{level} style="font-size:{paragraph_font_size};font-weight:bold;margin:14px 0 8px;color:{self.style_config.h3_title_text_color};">{text}</h{level}>'
 
     def _convert_paragraph(self, text: str, is_reference: bool = False) -> str:
         """Convert paragraph to HTML with improved styling."""
@@ -971,37 +878,45 @@ class MarkdownToWeChatConverter:
 
         # Get styles from config
         font_size = getattr(self.style_config, 'paragraph_font_size', '16px')
-        line_height = getattr(self.style_config, 'paragraph_line_height', '1.8')
         text_color = getattr(self.style_config, 'paragraph_color', '#333333')
 
-        style = f'margin:16px 0;line-height:{line_height};font-size:{font_size};color:{text_color};letter-spacing:0.3px;text-align:justify;'
+        style = self._paragraph_style(font_size, text_color)
         if is_reference:
-            style += 'font-size:0.85em;color:#888888;'
+            style = self._paragraph_style('0.85em', '#888888')
         return f'<p style="{style}">{text}</p>'
+
+    def _paragraph_style(self, font_size: str, text_color: str, margin: str = "16px 0") -> str:
+        """Build a minimal paragraph style shared across paragraph-like blocks."""
+        return f'margin:{margin};font-size:{font_size};color:{text_color};'
 
     def _convert_horizontal_rule(self) -> str:
         """Convert horizontal rule to HTML with elegant styling."""
         # Get border color from config or use default
         border_color = getattr(self.style_config, 'table_border_color', '#DEE2E6')
+        divider_html = f'<div style="border:none !important;height:0;font-size:0;line-height:1;"></div>'
+        if not _has_visible_html_content(divider_html):
+            return divider_html
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0;">'
-            f'<tr><td style="border-top:1px solid {border_color};height:0;font-size:0;line-height:0;"></td></tr>'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0;background:none;border:none !important;">'
+            f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
+            f'{divider_html}'
+            f'</td></tr>'
             f'</table>'
         )
 
     def _convert_blockquote(self, text: str, is_reference: bool = False) -> str:
         """Convert blockquote to HTML using table for WeChat compatibility."""
         text = self._inline_format(text)
-        # Get styles from config
-        bg_color = getattr(self.style_config, 'blockquote_bg_color', '#F8F9FA')
-        border_color = getattr(self.style_config, 'blockquote_border_color', '#DEE2E6')
+        # Use a fixed neutral background and theme accent border for citation-like quotes.
+        bg_color = '#eaeaea'
+        border_color = getattr(self.style_config, 'h2_title_text_color', '#333333')
         text_color = getattr(self.style_config, 'blockquote_text_color', '#6C757D')
 
-        # Use table with left border for better WeChat editor compatibility
+        # Use table wrapper for WeChat compatibility, with the visual styling on the inner div.
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">'
-            f'<tr><td style="background-color:{bg_color};padding:16px 20px;border-left:4px solid {border_color};border-radius:0 8px 8px 0;">'
-            f'<p style="color:{text_color};font-size:15px;line-height:1.8;margin:0;font-style:italic;">{text}</p>'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;background:none;border:none !important;">'
+            f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
+            f'<div style="background-color:{bg_color};padding:10px;border-left:3px solid {border_color} !important;border:none;"><p style="{self._paragraph_style("13px", text_color, margin="0")}">{text}</p></div>'
             f'</td></tr></table>'
         )
 
@@ -1011,6 +926,7 @@ class MarkdownToWeChatConverter:
 
         # Get text color from config
         text_color = getattr(self.style_config, 'paragraph_color', '#333333')
+        font_size = getattr(self.style_config, 'paragraph_font_size', '13px')
 
         style = f'margin:16px 0;padding-left:28px;color:{text_color};' + ('font-size:0.85em;color:#888888;' if is_reference else '')
 
@@ -1020,9 +936,9 @@ class MarkdownToWeChatConverter:
 
             if nested:
                 nested_html = self._convert_list(nested, nested_ordered, is_reference)
-                items_html.append(f'<li style="margin:10px 0;line-height:1.8;font-size:15px;">{item_text}{nested_html}</li>')
+                items_html.append(f'<li style="margin:10px 0;padding:0;font-size:{font_size};">{item_text}{nested_html}</li>')
             else:
-                items_html.append(f'<li style="margin:10px 0;line-height:1.8;font-size:15px;">{item_text}</li>')
+                items_html.append(f'<li style="margin:10px 0;padding:0;font-size:{font_size};">{item_text}</li>')
 
         return f'<{tag} style="{style}">{"".join(items_html)}</{tag}>'
 
@@ -1032,7 +948,7 @@ class MarkdownToWeChatConverter:
             return ""
 
         # Get styles from config
-        header_bg = getattr(self.style_config, 'table_header_bg_color', '#F1F3F5')
+        header_bg = '#e5e5e5'
         border_color = getattr(self.style_config, 'table_border_color', '#DEE2E6')
         text_color = getattr(self.style_config, 'paragraph_color', '#333333')
 
@@ -1042,7 +958,7 @@ class MarkdownToWeChatConverter:
 
         for idx, (cells, is_header) in enumerate(table_rows):
             row_cells = []
-            row_bg = '#FFFFFF' if idx % 2 == 0 else '#F8F9FA'  # Zebra striping
+            row_bg = 'transparent'
 
             for col_idx, cell in enumerate(cells):
                 align = alignments[col_idx] if col_idx < len(alignments) else 'left'
@@ -1052,10 +968,10 @@ class MarkdownToWeChatConverter:
                 border = f'border:1px solid {border_color};'
 
                 if is_header:
-                    style = f'{padding}{border}{align_style}background-color:{header_bg};font-weight:bold;color:{text_color};font-size:15px;'
+                    style = f'{padding}{border}{align_style}background-color:{header_bg};font-weight:bold;color:{text_color};font-size:13px;'
                     row_cells.append(f'<th style="{style}">{cell_text}</th>')
                 else:
-                    style = f'{padding}{border}{align_style}background-color:{row_bg};color:{text_color};font-size:14px;line-height:1.6;'
+                    style = f'{padding}{border}{align_style}background-color:{row_bg};color:{text_color};font-size:13px;'
                     row_cells.append(f'<td style="{style}">{cell_text}</td>')
 
             row_html = f'<tr>{"".join(row_cells)}</tr>'
@@ -1064,21 +980,15 @@ class MarkdownToWeChatConverter:
             else:
                 body_html += row_html
 
-        # Combine with rounded corners container
-        table_content = '<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">'
+        # Output the native table directly instead of wrapping it in a decorative table.
+        table_content = '<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;">'
         if header_html:
             table_content += f'<thead>{header_html}</thead>'
         if body_html:
             table_content += f'<tbody>{body_html}</tbody>'
         table_content += '</table>'
 
-        # Wrap in container for better styling
-        return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;">'
-            f'<tr><td style="border-radius:8px;overflow:hidden;border:1px solid {border_color};">'
-            f'{table_content}'
-            f'</td></tr></table>'
-        )
+        return table_content
 
     def _inline_format(self, text: str) -> str:
         """Apply inline formatting (bold, italic, code, links)."""
@@ -1105,8 +1015,8 @@ class MarkdownToWeChatConverter:
         text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'<em>\1</em>', text)
 
         # Inline code: `code`
-        # Use rounded corners and better colors from config
-        inline_code_bg = getattr(self.style_config, 'inline_code_bg_color', '#F1F3F5')
+        # Use a fixed neutral background for inline code across themes.
+        inline_code_bg = '#e5e5e5'
         inline_code_color = getattr(self.style_config, 'inline_code_text_color', '#E83E8C')
 
         def code_replace(match):
@@ -1116,9 +1026,9 @@ class MarkdownToWeChatConverter:
             # that may force unexpected line breaks in list items.
             display_text = f"{code}{trailing_punct}"
             code_span = (
-                f'<span style="display:inline;line-height:inherit;vertical-align:baseline;'
+                f'<span style="display:inline;line-height:1;vertical-align:baseline;'
                 f'background-color:{inline_code_bg};padding:1px 4px;border-radius:3px;'
-                f'font-family:SF Mono,Monaco,monospace;font-size:0.9em;'
+                f'font-family:SF Mono,Monaco,monospace;font-size:12px;'
                 f'color:{inline_code_color};font-weight:500;">{display_text}</span>'
             )
             return code_span
@@ -1143,22 +1053,9 @@ class MarkdownToWeChatConverter:
 
         return text
 
-    def _generate_html(self, title: str, date: str, tags: List[str], body_html: str, source: str) -> str:
+    def _generate_html(self, date: str, tags: List[str], body_html: str, source: str) -> str:
         """Generate complete HTML document using table-based layout for WeChat editor compatibility."""
         parts = []
-
-        # Build header using table with background in style attribute (not bgcolor)
-        # WeChat editor filters bgcolor attribute but supports style background-color
-        if title:
-            header_bg = self.style_config.header_bg_color
-            parts.append(
-                f'<table width="100%" cellpadding="20" cellspacing="0" border="0" '
-                f'style="margin-bottom:16px;background-color:{header_bg};">'
-                f'<tr><td style="color:{self.style_config.header_text_color};'
-                f'font-size:{self.style_config.header_font_size};font-weight:bold;">'
-                f'{_escape_html(title)}'
-                f'</td></tr></table>'
-            )
 
         # Build meta info
         if date or tags:
@@ -1171,8 +1068,8 @@ class MarkdownToWeChatConverter:
 
             if meta_parts:
                 parts.append(
-                    f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">'
-                    f'<tr><td style="color:{self.style_config.meta_text_color};font-size:{self.style_config.meta_font_size};padding:0 4px;">'
+                    f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;background:none;border:none !important;">'
+                    f'<tr style="border:none !important;"><td style="color:{self.style_config.meta_text_color};font-size:{self.style_config.meta_font_size};padding:0;border:none !important;">'
                     f'{" | ".join(meta_parts)}'
                     f'</td></tr></table>'
                 )
@@ -1183,10 +1080,11 @@ class MarkdownToWeChatConverter:
         # Build source footer
         if source:
             parts.append(
-                f'<table width="100%" cellpadding="16" cellspacing="0" border="0" style="margin-top:24px;">'
-                f'<tr><td align="center" style="border-top:1px solid #eeeeee;color:{self.style_config.source_text_color};font-size:{self.style_config.source_font_size};">'
-                f'来源: <a href="{_escape_html(source)}" style="color:{self.style_config.source_text_color};">'
-                f'{_escape_html(source)}</a>'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;background:none;border:none !important;">'
+                f'<tr style="border:none !important;"><td align="center" style="padding:0;border:none !important;">'
+                f'<div style="padding:0px;border:none !important;color:{self.style_config.source_text_color};font-size:{self.style_config.source_font_size};">来源: '
+                f'<a href="{_escape_html(source)}" style="color:{self.style_config.source_text_color};">{_escape_html(source)}</a>'
+                f'</div>'
                 f'</td></tr></table>'
             )
 

@@ -1,0 +1,47 @@
+name: 重大事情告知色彩系
+header:
+  bg_color: "#C0392B"
+  text_color: "#FFFFFF"
+  font_size: "22px"
+card:
+  bg_color: "#FEF5E7"
+  border_color: "#E67E22"
+  text_color: "#922B21"
+h2_h3_card:
+  bg_color: "#FEF9E7"
+  border_color: "#E67E22"
+h2_title:
+  line_color: "#C0392B"
+  text_color: "#922B21"
+  font_size: "20px"
+h3_title:
+  bg_color: "#FAD7A0"
+  border_color: "#C0392B"
+  text_color: "#922B21"
+  font_size: "17px"
+code:
+  bg_color: "#FEF5E7"
+  border_color: "#E67E22"
+  text_color: "#922B21"
+inline_code:
+  bg_color: "#FAD7A0"
+  text_color: "#C0392B"
+paragraph:
+  font_size: "16px"
+  line_height: "1.8"
+  color: "#7B241C"
+blockquote:
+  bg_color: "#FEF5E7"
+  border_color: "#E67E22"
+  text_color: "#A04000"
+table:
+  header_bg_color: "#FAD7A0"
+  border_color: "#E67E22"
+link:
+  color: "#C0392B"
+meta:
+  text_color: "#A04000"
+  font_size: "12px"
+source:
+  text_color: "#A1887F"
+  font_size: "12px"

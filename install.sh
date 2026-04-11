@@ -7,7 +7,7 @@
 #
 # This script will:
 #   1. Check Python version (3.9+)
-#   2. Install Python dependencies (wechatpy)
+#   2. Install Python dependencies
 #   3. Copy skill to ~/.claude/skills/
 #   4. Set up .env file if not exists
 #
@@ -65,7 +65,7 @@ check_python() {
 install_deps() {
     print_info "Installing Python dependencies..."
 
-    if pip3 install wechatpy; then
+    if pip3 install wechatpy cryptography pycryptodome PyYAML Pygments; then
         print_success "Dependencies installed"
     else
         print_error "Failed to install dependencies"
@@ -139,9 +139,9 @@ verify_install() {
         exit 1
     fi
 
-    # Check if wechatpy is installed
-    if ! python3 -c "import wechatpy" 2>/dev/null; then
-        print_error "wechatpy is not installed properly"
+    # Check if required runtime packages are installed
+    if ! python3 -c "import wechatpy; import pygments" 2>/dev/null; then
+        print_error "wechatpy or Pygments is not installed properly"
         exit 1
     fi
 

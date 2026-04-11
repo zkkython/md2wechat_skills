@@ -83,13 +83,15 @@ def main():
     )
     parser.add_argument(
         "--style",
-        choices=["academic_gray", "festival", "tech", "announcement"],
+        choices=["academic_gray", "festival", "tech", "announcement", "wechat", "ant"],
         default="academic_gray",
         help=("Visual style for the article (default: academic_gray). "
               "academic_gray: 学术灰风格 (default), "
               "festival: 节日快乐色彩系, "
               "tech: 科技产品介绍色彩系, "
-              "announcement: 重大事情告知色彩系")
+              "announcement: 重大事情告知色彩系, "
+              "wechat: WeChat 主题, "
+              "ant: Ant 主题")
     )
     parser.add_argument(
         "--comment",

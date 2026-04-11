@@ -9,6 +9,8 @@
         <option value="festival">节日快乐</option>
         <option value="tech">科技蓝</option>
         <option value="announcement">警示橙红</option>
+        <option value="wechat">WeChat</option>
+        <option value="ant">Ant</option>
       </select>
       <span class="hint">{{ styleHint }}</span>
     </div>
@@ -56,7 +58,9 @@ const styleHint = computed(() => {
     academic_gray: '简洁专业，适合技术文档',
     festival: '温暖红金，适合节日祝福',
     tech: '现代蓝调，适合产品介绍',
-    announcement: '醒目突出，适合重要通知'
+    announcement: '醒目突出，适合重要通知',
+    wechat: '微信绿强调，浅卡片正文，适合品牌技术内容',
+    ant: 'Ant 蓝强调，浅卡片正文，适合企业品牌内容'
   }
   return hints[model.value.style]
 })

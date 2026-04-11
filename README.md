@@ -51,8 +51,8 @@ EOF
 git clone https://github.com/zkkython/md2wechat.git
 cd md2wechat
 
-# Install Python dependency
-pip install wechatpy
+# Install Python dependencies
+pip install -e .
 
 # Copy skill to Claude Code skills directory (required for Claude integration)
 mkdir -p ~/.claude/skills
@@ -194,6 +194,29 @@ python main.py     # Serves at http://localhost:8000
 | `festival` | 节日快乐色彩系 | 温暖红金配色 | 节日祝福、庆祝内容 |
 | `tech` | 科技产品介绍色彩系 | 蓝色科技风 | 产品介绍、科技文章 |
 | `announcement` | 重大事情告知色彩系 | 警示橙红配色 | 重要通知、公告 |
+
+## Theme Management
+
+Themes are now loaded from nested YAML files instead of being hard-coded in Python.
+
+- Theme directory: [skills/md2wechat/themes/](skills/md2wechat/themes/)
+- Existing CLI and API usage stays the same: `--style tech`
+- To add a new theme, add a new YAML file named after the theme key, for example `custom_theme.yaml`
+- The filename becomes the style name used by CLI and API
+- Use grouped keys such as `header`, `paragraph`, `h2_title`, `blockquote`
+- Unspecified fields fall back to `StyleConfig` defaults in [skills/md2wechat/libs/themes.py](skills/md2wechat/libs/themes.py)
+
+Example:
+
+```yaml
+name: 自定义主题
+header:
+  bg_color: "#111111"
+paragraph:
+  color: "#222222"
+h2_title:
+  line_color: "#333333"
+```
 
 ## Testing
 

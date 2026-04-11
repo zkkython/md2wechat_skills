@@ -22,7 +22,9 @@ classifiers = [
 dependencies = [
     "wechatpy",
     "cryptography",
-    "Crypto",
+    "pycryptodome",
+    "PyYAML",
+    "Pygments",
 ]
 
 [project.optional-dependencies]
@@ -43,3 +45,6 @@ include = ["skills*", "skills.md2wechat*", "skills.md2wechat.scripts*"]
 
 [tool.setuptools]
 license-files = []  # Disable automatic license file detection
+
+[tool.setuptools.package-data]
+"skills.md2wechat" = ["themes/*.yaml"]

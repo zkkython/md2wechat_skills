@@ -190,16 +190,13 @@ class CodeBlockFormatter:
                 for i, line in enumerate(processed_lines, 1)
             ]
 
-        # Join with newline - use <br> for line breaks since we're using pre
-        code_text = '<br>\n'.join(processed_lines)
+        # Keep real newlines so the code block itself can drive horizontal overflow.
+        code_text = '\n'.join(processed_lines)
 
-        # Outer container with pre tag for better font-size control
-        # Use pre tag with specific styling to prevent WeChat from overriding
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;background:none;border:none !important;">'
-            f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
-            f'<pre style="display:block;margin:0;padding:16px;background-color:{bg_color};border:1px solid {border_color};font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1;color:{text_color};white-space:pre-wrap;word-wrap:break-word;">{code_text}</pre>'
-            f'</td></tr></table>'
+            f'<div style="margin:16px 0;width:100%;max-width:100%;overflow:hidden;background:none;border:none !important;">'
+            f'<pre style="display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;box-sizing:border-box;margin:0;padding:16px;background-color:{bg_color};border:1px solid {border_color};font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1;color:{text_color};white-space:pre;word-wrap:normal;overflow-wrap:normal;-webkit-overflow-scrolling:touch;">{code_text}</pre>'
+            f'</div>'
         )
 
     def _highlight_lines(self, code: str, language: str) -> Optional[List[str]]:
@@ -283,7 +280,7 @@ class ImageProcessor:
         # Use table for center alignment (better WeChat editor compatibility)
         # Note: width="100%" on img helps ensure proper sizing in WeChat
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;background:none;border:none !important;">'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:16px 0;background:none;border:none !important;">'
             f'<tr style="border:none !important;"><td align="center" style="padding:0;border:none !important;">'
             f'<img src="{src}"{alt_attr}{title_attr} width="100%" style="display:block;" />'
             f'</td></tr></table>'
@@ -786,14 +783,14 @@ class MarkdownToWeChatConverter:
                 if is_reference:
                     # Reference section with lighter text
                     html_parts.append(
-                        f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{card_bg}" style="background:none;border:none !important;">'
-                        f'<tr style="border:none !important;"><td style="padding:0;border:none !important;font-size:0.85em;color:#888888;">'
+                        f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{card_bg}" style="width:100%;max-width:100%;table-layout:fixed;background:none;border:none !important;">'
+                        f'<tr style="border:none !important;"><td style="padding:8px 0;border:none !important;font-size:0.85em;color:#888888;">'
                         f'<div style="padding:0px;border:none !important;">{card_html}</div></td></tr></table>'
                     )
                 else:
                     html_parts.append(
-                        f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{card_bg}" style="background:none;border:none !important;">'
-                        f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
+                        f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{card_bg}" style="width:100%;max-width:100%;table-layout:fixed;background:none;border:none !important;">'
+                        f'<tr style="border:none !important;"><td style="padding:8px 0;border:none !important;">'
                         f'<div style="padding:0px;border:none !important;">{card_html}</div></td></tr></table>'
                     )
         else:
@@ -842,7 +839,7 @@ class MarkdownToWeChatConverter:
         if level == 1:
             # H1: Large centered heading with accent color
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0px;background:none;border:none !important;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:0px;background:none;border:none !important;">'
                 f'<tr style="border:none !important;"><td align="center" style="border:none !important;padding:0;">'
                 f'<h1 style="font-size:20px;font-weight:bold;color:{self.style_config.h2_title_text_color};margin:0;padding:0;">'
                 f'{text}'
@@ -852,7 +849,7 @@ class MarkdownToWeChatConverter:
         elif level == 2:
             # H2: Use table for WeChat editor compatibility.
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0px;background:none;border:none !important;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:0px;background:none;border:none !important;">'
                 f'<tr style="border:none !important;"><td align="center" style="border:none !important;padding:0;">'
                 f'<span style="display:inline-block;margin-bottom:8px;background:none;color:{self.style_config.h2_title_text_color};padding:6px 20px;font-size:16px;font-weight:bold;border-radius:8px;">'
                 f'{text}</span>'
@@ -861,7 +858,7 @@ class MarkdownToWeChatConverter:
         elif level == 3:
             # H3: Use table for left-border style (avoid border-radius)
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{self.style_config.h3_title_bg_color.replace("#", "")}" style="margin:0px;background:none;border:none !important;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{self.style_config.h3_title_bg_color.replace("#", "")}" style="width:100%;max-width:100%;table-layout:fixed;margin:0px;background:none;border:none !important;">'
                 f'<tr style="border:none !important;"><td style="border:none !important;padding:0;">'
                 f'<span style="display:block;padding:8px 8px 8px 0px;font-size:{paragraph_font_size};font-weight:bold;color:{self.style_config.h3_title_text_color};">{text}</span>'
                 f'</td></tr></table>'
@@ -897,7 +894,7 @@ class MarkdownToWeChatConverter:
         if not _has_visible_html_content(divider_html):
             return divider_html
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0;background:none;border:none !important;">'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:28px 0;background:none;border:none !important;">'
             f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
             f'{divider_html}'
             f'</td></tr>'
@@ -914,7 +911,7 @@ class MarkdownToWeChatConverter:
 
         # Use table wrapper for WeChat compatibility, with the visual styling on the inner div.
         return (
-            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;background:none;border:none !important;">'
+            f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:16px 0;background:none;border:none !important;">'
             f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
             f'<div style="background-color:{bg_color};padding:10px;border-left:3px solid {border_color} !important;border:none;"><p style="{self._paragraph_style("13px", text_color, margin="0")}">{text}</p></div>'
             f'</td></tr></table>'
@@ -1068,7 +1065,7 @@ class MarkdownToWeChatConverter:
 
             if meta_parts:
                 parts.append(
-                    f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;background:none;border:none !important;">'
+                    f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin-bottom:16px;background:none;border:none !important;">'
                     f'<tr style="border:none !important;"><td style="color:{self.style_config.meta_text_color};font-size:{self.style_config.meta_font_size};padding:0;border:none !important;">'
                     f'{" | ".join(meta_parts)}'
                     f'</td></tr></table>'
@@ -1080,7 +1077,7 @@ class MarkdownToWeChatConverter:
         # Build source footer
         if source:
             parts.append(
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;background:none;border:none !important;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin-top:24px;background:none;border:none !important;">'
                 f'<tr style="border:none !important;"><td align="center" style="padding:0;border:none !important;">'
                 f'<div style="padding:0px;border:none !important;color:{self.style_config.source_text_color};font-size:{self.style_config.source_font_size};">来源: '
                 f'<a href="{_escape_html(source)}" style="color:{self.style_config.source_text_color};">{_escape_html(source)}</a>'
@@ -1088,8 +1085,12 @@ class MarkdownToWeChatConverter:
                 f'</td></tr></table>'
             )
 
-        # Return content directly without outer table wrapper
-        # WeChat editor may render empty table cells with borders
+        # Wrap the full article in a page-level container so over-wide content
+        # cannot expand the preview/page width.
         full_html = "".join(parts)
 
-        return full_html
+        return (
+            '<div style="width:100%;max-width:100%;overflow-x:hidden;box-sizing:border-box;">'
+            f'{full_html}'
+            '</div>'
+        )

@@ -332,6 +332,27 @@ def test_visible_content_uses_default_line_height():
         return False
 
 
+def test_paragraph_newlines_render_as_separate_blocks():
+    """Test that paragraph line breaks render as separate p blocks instead of br tags."""
+    try:
+        from converter import MarkdownToWeChatConverter
+
+        converter = MarkdownToWeChatConverter(style="academic_gray")
+        html = converter.convert("第一行\n第二行")
+
+        assert '<br>' not in html and '<br/>' not in html, "Paragraph line breaks should not render as br tags"
+        assert '<p style="margin:0 0 10px 0;font-size:16px;color:#2C3E50;">第一行</p>' in html, "Non-final line should use 10px bottom margin"
+        assert '<p style="margin:0;font-size:16px;color:#2C3E50;">第二行</p>' in html, "Final line should not use paragraph margin"
+
+        print("✓ Paragraph newline block rendering test passed")
+        return True
+    except Exception as e:
+        print(f"✗ Paragraph newline block rendering test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def test_default_body_and_code_font_size():
     """Test that body/list text stay aligned and code uses 12px."""
     try:

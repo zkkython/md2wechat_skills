@@ -888,18 +888,23 @@ class MarkdownToWeChatConverter:
 
     def _convert_paragraph(self, text: str, is_reference: bool = False) -> str:
         """Convert paragraph to HTML with improved styling."""
-        text = self._inline_format(text)
-        # Convert newlines to <br> tags for line breaks within paragraphs
-        text = text.replace('\n', '<br>')
+        segments = [self._inline_format(part) for part in text.split('\n')]
 
         # Get styles from config
         font_size = getattr(self.style_config, 'paragraph_font_size', '16px')
         text_color = getattr(self.style_config, 'paragraph_color', '#333333')
 
-        style = self._paragraph_style(font_size, text_color)
         if is_reference:
-            style = self._paragraph_style('0.85em', '#888888')
-        return f'<p style="{style}">{text}</p>'
+            font_size = '0.85em'
+            text_color = '#888888'
+
+        paragraph_html = []
+        for index, segment in enumerate(segments):
+            margin = "0 0 10px 0" if index < len(segments) - 1 else "0"
+            style = self._paragraph_style(font_size, text_color, margin=margin)
+            paragraph_html.append(f'<p style="{style}">{segment}</p>')
+
+        return ''.join(paragraph_html)
 
     def _paragraph_style(self, font_size: str, text_color: str, margin: str = "16px 0") -> str:
         """Build a minimal paragraph style shared across paragraph-like blocks."""

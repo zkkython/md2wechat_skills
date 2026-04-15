@@ -65,6 +65,19 @@ check_python() {
 install_deps() {
     print_info "Installing Python dependencies..."
 
+    LOCK_FILE="${SCRIPT_DIR}/requirements.lock.txt"
+
+    if [ -f "$LOCK_FILE" ]; then
+        print_info "Using locked dependencies from requirements.lock.txt"
+        if pip3 install -r "$LOCK_FILE"; then
+            print_success "Locked dependencies installed"
+            return
+        fi
+        print_error "Failed to install locked dependencies"
+        exit 1
+    fi
+
+    print_warning "requirements.lock.txt not found, falling back to direct dependency install"
     if pip3 install wechatpy cryptography pycryptodome PyYAML Pygments; then
         print_success "Dependencies installed"
     else
@@ -174,6 +187,9 @@ print_usage() {
     echo "Documentation:"
     echo "   ${SCRIPT_DIR}/README.md"
     echo "   ${CLAUDE_SKILLS_DIR}/${SKILL_NAME}/SKILL.md"
+    echo ""
+    echo "Locked dependencies:"
+    echo "   ${SCRIPT_DIR}/requirements.lock.txt"
     echo ""
 }
 

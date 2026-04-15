@@ -51,8 +51,11 @@ EOF
 git clone https://github.com/zkkython/md2wechat.git
 cd md2wechat
 
-# Install Python dependencies
-pip install -e .
+# Create a Python 3.14 virtualenv and install locked dependencies
+.venv/bin/python3.14 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.lock.txt
+pip install --no-build-isolation -e ".[dev]"
 
 # Copy skill to Claude Code skills directory (required for Claude integration)
 mkdir -p ~/.claude/skills
@@ -153,6 +156,7 @@ For batch uploading multiple Markdown files, use the Web UI:
 
 ```bash
 # 1. Install dependencies
+source ../../.venv/bin/activate
 cd web/backend
 pip install -r requirements.txt
 

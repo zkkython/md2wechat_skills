@@ -16,6 +16,7 @@
 
 ```bash
 # 后端依赖
+source ../.venv/bin/activate
 pip install -r backend/requirements.txt
 
 # 前端依赖

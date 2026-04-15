@@ -211,12 +211,12 @@ class CodeBlockFormatter:
 
         return (
             f'<div style="margin:16px 0;width:100%;max-width:100%;overflow:hidden;background:none;border:none !important;">'
-            f'<div style="height:30px;display:flex;align-items:center;padding:0 12px;box-sizing:border-box;background-color:{header_bg_color};border:1px solid {border_color};border-bottom:none;border-radius:10px 10px 0 0;">'
+            f'<div style="height:30px;display:flex;align-items:center;padding:0 12px;box-sizing:border-box;background-color:{header_bg_color};border:none;border-radius:10px 10px 0 0;">'
             f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:#ff5f56;margin-right:8px;"></span>'
             f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:#ffbd2e;margin-right:8px;"></span>'
             f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:#27c93f;"></span>'
             f'</div>'
-            f'<pre style="display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;box-sizing:border-box;margin:0;padding:16px;background-color:{bg_color};border:1px solid {border_color};border-top:none;border-radius:0 0 10px 10px;font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1.5;color:{text_color};white-space:pre;word-wrap:normal;overflow-wrap:normal;-webkit-overflow-scrolling:touch;">{code_text}</pre>'
+            f'<pre style="display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;box-sizing:border-box;margin:0;padding:16px;background-color:{bg_color};border:none;border-radius:0 0 10px 10px;font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1.5;color:{text_color};white-space:pre;word-wrap:normal;overflow-wrap:normal;-webkit-overflow-scrolling:touch;">{code_text}</pre>'
             f'</div>'
         )
 
@@ -931,7 +931,7 @@ class MarkdownToWeChatConverter:
         # Use a fixed neutral background and theme accent border for citation-like quotes.
         bg_color = '#f0f0f0'
         border_color = getattr(self.style_config, 'h2_title_text_color', '#333333')
-        text_color = getattr(self.style_config, 'blockquote_text_color', '#6C757D')
+        text_color = getattr(self.style_config, 'paragraph_color', '#333333')
 
         # Use table wrapper for WeChat compatibility, with the visual styling on the inner div.
         return (
@@ -972,24 +972,26 @@ class MarkdownToWeChatConverter:
         header_bg = '#e5e5e5'
         border_color = getattr(self.style_config, 'table_border_color', '#DEE2E6')
         text_color = getattr(self.style_config, 'paragraph_color', '#333333')
+        header_text_color = getattr(self.style_config, 'h2_title_text_color', '#333333')
 
         # Build table HTML
         header_html = ''
         body_html = ''
 
+        body_row_index = 0
         for idx, (cells, is_header) in enumerate(table_rows):
             row_cells = []
-            row_bg = 'transparent'
+            row_bg = 'transparent' if body_row_index % 2 == 0 else '#f0f0f0'
 
             for col_idx, cell in enumerate(cells):
                 align = alignments[col_idx] if col_idx < len(alignments) else 'left'
                 cell_text = self._inline_format(cell)
                 align_style = f'text-align:{align};'
                 padding = 'padding:12px 16px;'
-                border = f'border:1px solid {border_color};'
+                border = f'border-top:1px solid {border_color};border-bottom:1px solid {border_color};border-left:none;border-right:none;'
 
                 if is_header:
-                    style = f'{padding}{border}{align_style}background-color:{header_bg};font-weight:bold;color:{text_color};font-size:13px;'
+                    style = f'{padding}{border}text-align:center;background-color:{header_bg};font-weight:bold;color:{header_text_color};font-size:13px;'
                     row_cells.append(f'<th style="{style}">{cell_text}</th>')
                 else:
                     style = f'{padding}{border}{align_style}background-color:{row_bg};color:{text_color};font-size:13px;'
@@ -1000,6 +1002,7 @@ class MarkdownToWeChatConverter:
                 header_html = row_html
             else:
                 body_html += row_html
+                body_row_index += 1
 
         # Output the native table directly instead of wrapping it in a decorative table.
         table_content = '<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;">'

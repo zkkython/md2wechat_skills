@@ -236,14 +236,16 @@ def test_wechat_theme_builtin():
 
 
 def test_wechat_native_table_border_color():
-    """Test native table cells use the updated wechat border color."""
+    """Test native table cells only use top/bottom borders with the updated wechat color."""
     try:
         from converter import MarkdownToWeChatConverter
 
         converter = MarkdownToWeChatConverter(style="wechat")
         html = converter.convert("| h |\n| --- |\n| c |\n")
 
-        assert 'border:1px solid #e6e6e6;' in html, "WeChat native table cells should use #e6e6e6 border color"
+        assert 'border-top:1px solid #e6e6e6;border-bottom:1px solid #e6e6e6;border-left:none;border-right:none;' in html, "WeChat native table cells should only use top/bottom borders with #e6e6e6"
+        assert 'text-align:center;background-color:#e5e5e5;font-weight:bold;color:#0B7D45;font-size:13px;' in html, "WeChat native table header should use theme accent color and be centered"
+        assert 'border:1px solid #e6e6e6;' not in html, "WeChat native table cells should not render full four-sided borders"
         assert 'border:1px solid #DFF6EA;' not in html, "WeChat native table cells should no longer use #DFF6EA"
 
         print("✓ WeChat native table border color test passed")
@@ -360,7 +362,7 @@ def test_default_body_and_code_font_size():
 
         converter = MarkdownToWeChatConverter(style="academic_gray")
         html = converter.convert(
-            "Paragraph text.\n\n- Item 1\n\n> Quote text\n\n| h |\n| --- |\n| c |\n\n```python\nprint('hi')\n```\n"
+            "Paragraph text.\n\n- Item 1\n\n> Quote text\n\n| h |\n| --- |\n| c |\n| d |\n\n```python\nprint('hi')\n```\n"
         )
 
         assert 'font-size:16px;' in html, "Academic gray body text should use theme paragraph font size"
@@ -368,8 +370,10 @@ def test_default_body_and_code_font_size():
         assert '<li style="margin:10px 0;padding:0;font-size:16px;">' in html, "List items should match body font size and have no padding"
         assert 'font-size:12px;' in html, "Code should use 12px"
         assert 'font-size:12px;line-height:1.5;color:' in html, "Code pre should use line-height:1.5"
-        assert 'background-color:#e5e5e5;font-weight:bold;color:#2C3E50;font-size:13px;' in html, "Native table header should use the fixed gray background"
-        assert 'background-color:transparent;color:#2C3E50;font-size:13px;' in html, "Native table rows should use transparent backgrounds"
+        assert 'text-align:center;background-color:#e5e5e5;font-weight:bold;color:#2C3E50;font-size:13px;' in html, "Native table header should use the theme accent color and centered alignment"
+        assert 'background-color:transparent;color:#2C3E50;font-size:13px;' in html, "First native table body row should use a transparent background"
+        assert 'background-color:#f0f0f0;color:#2C3E50;font-size:13px;' in html, "Second native table body row should use the alternate gray background"
+        assert 'border-top:1px solid #BDC3C7;border-bottom:1px solid #BDC3C7;border-left:none;border-right:none;' in html, "Native table cells should only render top and bottom borders"
         assert '<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;">' in html, "Native table should render directly"
         assert 'border-radius:8px;overflow:hidden;border:1px solid' not in html, "Native table should not be wrapped by a decorative table"
         assert 'text-align:justify' not in html, "Paragraphs should not force justification"
@@ -411,6 +415,7 @@ def test_code_block_highlighting_and_fallback():
         assert 'height:30px;display:flex;align-items:center;padding:0 12px;' in highlighted, "Code block should render a 30px header bar"
         assert 'background-color:#161b22;' in highlighted, "Code block header should use GitHub dark chrome"
         assert 'background-color:#ff5f56;' in highlighted and 'background-color:#ffbd2e;' in highlighted and 'background-color:#27c93f;' in highlighted, "Code block header should render red/yellow/green dots"
+        assert 'border:1px solid' not in highlighted, "Code block should not render a border"
         assert 'overflow-x:auto;overflow-y:hidden;box-sizing:border-box;' in highlighted, "Code block should provide horizontal scrolling on the pre element"
         assert 'white-space:pre;word-wrap:normal;overflow-wrap:normal;' in highlighted, "Code block should preserve long lines for horizontal scrolling"
         assert 'white-space:pre-wrap' not in highlighted, "Code block should not soft-wrap long lines"
@@ -452,6 +457,7 @@ def test_non_table_wrappers_use_background_none():
         assert '<td style="padding:8px 0;border:none !important;">' in html or '<td style="padding:8px 0;border:none !important;font-size:0.85em;color:#888888;">' in html, "Text card wrapper td should use 8px vertical padding"
         assert 'padding:0px;border:none !important;' in html, "Card wrapper direct div should use 0px padding and no border"
         assert 'background-color:#f0f0f0;padding:10px;border-left:3px solid #2c3e50 !important;border:none;' in html.lower(), "Blockquote direct div should use citation styling"
+        assert 'font-size:13px;color:#2C3E50;' in html, "Citation text should use the theme paragraph color"
         assert '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:28px 0;background:none;border:none !important;">' not in html, "Empty divider div should not be wrapped by a decorative table"
         assert 'cellpadding="16"' not in html, "Wrapper tables should not use non-zero cellpadding"
         assert 'cellpadding="12"' not in html, "Card wrapper tables should not use non-zero cellpadding"

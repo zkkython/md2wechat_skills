@@ -20,16 +20,16 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "wechatpy",
-    "cryptography",
-    "pycryptodome",
-    "PyYAML",
-    "Pygments",
+    "wechatpy==1.8.18",
+    "cryptography==46.0.7",
+    "pycryptodome==3.23.0",
+    "PyYAML==6.0.3",
+    "Pygments==2.20.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
+    "pytest==9.0.3",
 ]
 
 [project.urls]

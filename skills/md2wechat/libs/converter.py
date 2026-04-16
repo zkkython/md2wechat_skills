@@ -194,8 +194,11 @@ class CodeBlockFormatter:
 
         return (
             f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:16px 0;background:none;border:none !important;">'
+            f'<tr style="border:none !important;"><td style="height:30px;padding:0 12px;background-color:{border_color};border:none !important;border-radius:10px 10px 0 0;">'
+            f'<span style="font-size:14px;line-height:30px;color:#8b949e;letter-spacing:2px;">●●●</span>'
+            f'</td></tr>'
             f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
-            f'<pre style="display:block;width:100%;overflow:auto;margin:0;padding:16px;background-color:{bg_color};border:1px solid {border_color};font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1;color:{text_color};white-space:pre;">{code_text}</pre>'
+            f'<pre style="display:block;width:100%;overflow:auto;margin:0;padding:16px;background-color:{bg_color};border:1px solid {border_color};border-top:none;border-radius:0 0 10px 10px;font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1.5;color:{text_color};white-space:pre !important;">{code_text}</pre>'
             f'</td></tr></table>'
         )
 
@@ -258,9 +261,8 @@ class CodeBlockFormatter:
         return rendered
 
     def _preserve_spacing(self, text: str) -> str:
-        text = text.replace('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
-        text = text.replace('    ', '&nbsp;&nbsp;&nbsp;&nbsp;')
-        text = text.replace('  ', '&nbsp;&nbsp;')
+        text = text.replace('\t', '    ')
+        text = text.replace(' ', '&nbsp;')
         return text
 
 

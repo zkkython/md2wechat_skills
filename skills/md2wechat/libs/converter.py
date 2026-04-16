@@ -12,6 +12,7 @@ import html
 
 from pygments import lex
 from pygments.lexers import get_lexer_by_name
+from pygments.styles import get_style_by_name
 from pygments.token import Token
 from pygments.util import ClassNotFound
 
@@ -122,6 +123,8 @@ class MarkdownParser:
 class CodeBlockFormatter:
     """Format code blocks for WeChat."""
 
+    DEFAULT_PYGMENTS_STYLE = "material"
+
     LANGUAGE_ALIASES = {
         "js": "javascript",
         "jsx": "javascript",
@@ -134,17 +137,16 @@ class CodeBlockFormatter:
         "yml": "yaml",
     }
 
-    TOKEN_COLORS = {
-        "keyword": "#C678DD",
-        "string": "#98C379",
-        "comment": "#7F848E",
-        "number": "#D19A66",
-        "function": "#61AFEF",
-        "operator": "#56B6C2",
-    }
-
     def __init__(self, style_config: Optional[StyleConfig] = None):
         self.style_config = style_config or get_default_style()
+        style_name = getattr(self.style_config, "code_pygments_style", self.DEFAULT_PYGMENTS_STYLE)
+        self.pygments_style = self._load_pygments_style(style_name)
+
+    def _load_pygments_style(self, style_name: str):
+        try:
+            return get_style_by_name(style_name or self.DEFAULT_PYGMENTS_STYLE)
+        except ClassNotFound:
+            return get_style_by_name(self.DEFAULT_PYGMENTS_STYLE)
 
     def format_code_block(self, code: str, language: str = "", show_line_numbers: bool = True) -> str:
         """Format code block with proper indentation and optional line numbers."""
@@ -166,10 +168,10 @@ class CodeBlockFormatter:
         if min_indent == float('inf'):
             min_indent = 0
 
-        # Get colors from config
-        bg_color = self.style_config.code_bg_color
-        border_color = self.style_config.code_border_color
-        text_color = getattr(self.style_config, 'code_text_color', '#212529')
+        bg_color = self.pygments_style.background_color or self.style_config.code_bg_color
+        border_color = getattr(self.pygments_style, "highlight_color", None) or self.style_config.code_border_color
+        text_color = self._get_token_color(Token.Text) or getattr(self.style_config, 'code_text_color', '#212529')
+        line_number_color = self._get_token_color(Token.Comment) or "#868E96"
 
         normalized_lines = []
         for line in lines:
@@ -178,15 +180,11 @@ class CodeBlockFormatter:
             else:
                 normalized_lines.append(line)
 
-        highlighted_lines = self._highlight_lines("\n".join(normalized_lines), language)
-        if highlighted_lines is None:
-            processed_lines = [self._render_plain_line(line) for line in normalized_lines]
-        else:
-            processed_lines = highlighted_lines
+        processed_lines = [self._render_code_line(line, language) for line in normalized_lines]
 
         if show_line_numbers:
             processed_lines = [
-                f'<span style="color:#868E96;display:inline-block;width:2.5em;text-align:right;margin-right:0.8em;font-size:12px;">{i}</span>{line}'
+                f'<span style="color:{line_number_color};display:inline-block;width:2.5em;text-align:right;margin-right:0.8em;font-size:12px;">{i}</span>{line}'
                 for i, line in enumerate(processed_lines, 1)
             ]
 
@@ -195,10 +193,12 @@ class CodeBlockFormatter:
         return (
             f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:16px 0;background:none;border:none !important;">'
             f'<tr style="border:none !important;"><td style="height:30px;padding:0 12px;background-color:{border_color};border:none !important;border-radius:10px 10px 0 0;">'
-            f'<span style="font-size:14px;line-height:30px;color:#8b949e;letter-spacing:2px;">●●●</span>'
+            f'<span style="font-size:14px;line-height:30px;color:#ff5f56;">●</span>'
+            f'<span style="font-size:14px;line-height:30px;color:#ffbd2e;">●</span>'
+            f'<span style="font-size:14px;line-height:30px;color:#27c93f;">●</span>'
             f'</td></tr>'
             f'<tr style="border:none !important;"><td style="padding:0;border:none !important;">'
-            f'<pre style="display:block;width:100%;overflow:auto;margin:0;padding:16px;background-color:{bg_color};border:1px solid {border_color};border-top:none;border-radius:0 0 10px 10px;font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1.5;color:{text_color};white-space:pre !important;">{code_text}</pre>'
+            f'<pre style="display:block;width:100%;overflow:auto;margin:0;padding:16px;background-color:{bg_color};border:none !important;border-radius:0 0 10px 10px;font-family:SF Mono,Monaco,monospace,Consolas,Courier New;font-size:12px;line-height:1.2;color:{text_color};">{code_text}</pre>'
             f'</td></tr></table>'
         )
 
@@ -213,6 +213,7 @@ class CodeBlockFormatter:
             return None
 
         rendered_lines = [""]
+        pending_whitespace = ""
         for token_type, value in lex(code, lexer):
             if not value:
                 continue
@@ -221,14 +222,38 @@ class CodeBlockFormatter:
             parts = value.split('\n')
             for index, part in enumerate(parts):
                 if part:
-                    rendered_lines[-1] += self._render_token_part(part, color)
+                    if part.strip() == "":
+                        pending_whitespace += part
+                    else:
+                        rendered_lines[-1] += self._render_token_part(pending_whitespace + part, color)
+                        pending_whitespace = ""
                 if index < len(parts) - 1:
+                    if pending_whitespace:
+                        rendered_lines[-1] += self._render_plain_line(pending_whitespace)
+                        pending_whitespace = ""
                     rendered_lines.append("")
+
+        if pending_whitespace:
+            rendered_lines[-1] += self._render_plain_line(pending_whitespace)
 
         while rendered_lines and not rendered_lines[-1]:
             rendered_lines.pop()
 
         return rendered_lines or [""]
+
+    def _render_code_line(self, line: str, language: str) -> str:
+        leading_width = len(line) - len(line.lstrip(" \t"))
+        leading = line[:leading_width]
+        rest = line[leading_width:]
+        indent_html = self._preserve_spacing(_escape_html_text(leading))
+
+        if not rest:
+            return indent_html
+
+        highlighted = self._highlight_lines(rest, language)
+        if highlighted is None:
+            return indent_html + self._render_plain_line(rest)
+        return indent_html + highlighted[0]
 
     def _normalize_language(self, language: str) -> str:
         if not language:
@@ -237,18 +262,16 @@ class CodeBlockFormatter:
         return self.LANGUAGE_ALIASES.get(normalized, normalized)
 
     def _get_token_color(self, token_type) -> Optional[str]:
-        if token_type in Token.Comment:
-            return self.TOKEN_COLORS["comment"]
-        if token_type in Token.Keyword:
-            return self.TOKEN_COLORS["keyword"]
-        if token_type in Token.String:
-            return self.TOKEN_COLORS["string"]
-        if token_type in Token.Number:
-            return self.TOKEN_COLORS["number"]
-        if token_type in Token.Name.Function or token_type in Token.Name.Class:
-            return self.TOKEN_COLORS["function"]
-        if token_type in Token.Operator or token_type in Token.Punctuation:
-            return self.TOKEN_COLORS["operator"]
+        current = token_type
+        while current is not None:
+            style = self.pygments_style.style_for_token(current)
+            color = style.get("color")
+            if color:
+                return f"#{color}" if not color.startswith("#") else color
+            parent = getattr(current, "parent", None)
+            if parent == current:
+                break
+            current = parent
         return None
 
     def _render_plain_line(self, line: str) -> str:
@@ -841,7 +864,7 @@ class MarkdownToWeChatConverter:
         if level == 1:
             # H1: Large centered heading with accent color
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:0px;background:none;border:none !important;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:12px 0;background:none;border:none !important;">'
                 f'<tr style="border:none !important;"><td align="center" style="border:none !important;padding:0;">'
                 f'<h1 style="font-size:22px;font-weight:bold;color:{self.style_config.h2_title_text_color};margin:0;padding:0;">'
                 f'{text}'
@@ -851,7 +874,7 @@ class MarkdownToWeChatConverter:
         elif level == 2:
             # H2: Use table for WeChat editor compatibility.
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:0px;background:none;border:none !important;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;table-layout:fixed;margin:12px 0;background:none;border:none !important;">'
                 f'<tr style="border:none !important;"><td align="center" style="border:none !important;padding:0;">'
                 f'<span style="display:inline-block;background:none;color:{self.style_config.h2_title_text_color};padding:6px 20px;font-size:18px;font-weight:bold;border-radius:8px;">'
                 f'{text}</span>'
@@ -860,7 +883,7 @@ class MarkdownToWeChatConverter:
         elif level == 3:
             # H3: Use table for left-border style (avoid border-radius)
             return (
-                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{self.style_config.h3_title_bg_color.replace("#", "")}" style="width:100%;max-width:100%;table-layout:fixed;margin:0px;background:none;border:none !important;">'
+                f'<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{self.style_config.h3_title_bg_color.replace("#", "")}" style="width:100%;max-width:100%;table-layout:fixed;margin:12px 0;background:none;border:none !important;">'
                 f'<tr style="border:none !important;"><td style="border:none !important;padding:0;">'
                 f'<span style="display:block;padding:8px 8px 8px 0px;font-size:{paragraph_font_size};font-weight:bold;color:{self.style_config.h3_title_text_color};">{text}</span>'
                 f'</td></tr></table>'

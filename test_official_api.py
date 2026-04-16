@@ -286,8 +286,8 @@ def test_heading_td_has_no_border():
         converter = MarkdownToWeChatConverter(style="academic_gray")
         html = converter.convert("# H1\n\n## H2\n\n### H3\n\n#### H4\n\n##### H5\n", title="Header Title")
 
-        assert html.count('style="margin:0px;background:none;border:none !important;">') >= 2, "H1/H2 wrapper tables should use 0px margin"
-        assert 'bgcolor="ECF0F1" style="margin:0px;background:none;border:none !important;">' in html, "H3 wrapper table should use 0px margin"
+        assert html.count('style="width:100%;max-width:100%;table-layout:fixed;margin:12px 0;background:none;border:none !important;">') >= 2, "H1/H2 wrapper tables should include 12px vertical margin"
+        assert 'bgcolor="ECF0F1" style="width:100%;max-width:100%;table-layout:fixed;margin:12px 0;background:none;border:none !important;">' in html, "H3 wrapper table should include 12px vertical margin"
         assert html.count('border:none !important;') >= 3, "Heading td containers should force border:none"
         assert 'font-size:22px;font-weight:bold' in html, "H1 should use 22px"
         assert 'background:none;color:#2C3E50;padding:6px 20px;font-size:18px;font-weight:bold;border-radius:8px;' in html, "H2 should use theme text color without background"
@@ -369,12 +369,12 @@ def test_default_body_and_code_font_size():
         assert '<p style="margin:16px 0;font-size:16px;color:#2C3E50;">' in html, "Paragraph should keep a minimal unified style"
         assert '<li style="margin:10px 0;padding:0;font-size:16px;">' in html, "List items should match body font size and have no padding"
         assert 'font-size:12px;' in html, "Code should use 12px"
-        assert 'font-size:12px;line-height:1.5;color:' in html, "Code pre should use line-height:1.5"
+        assert 'font-size:12px;line-height:1;color:' in html, "Code block should use line-height:1"
         assert 'text-align:center;background-color:#e5e5e5;font-weight:bold;color:#2C3E50;font-size:13px;' in html, "Native table header should use the theme accent color and centered alignment"
         assert 'background-color:transparent;color:#2C3E50;font-size:13px;' in html, "First native table body row should use a transparent background"
         assert 'background-color:#f0f0f0;color:#2C3E50;font-size:13px;' in html, "Second native table body row should use the alternate gray background"
         assert 'border-top:1px solid #BDC3C7;border-bottom:1px solid #BDC3C7;border-left:none;border-right:none;' in html, "Native table cells should only render top and bottom borders"
-        assert '<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;">' in html, "Native table should render directly"
+        assert '<table style="width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse;margin:20px 0;font-size:13px;">' in html, "Native table should render directly with width constraints"
         assert 'border-radius:8px;overflow:hidden;border:1px solid' not in html, "Native table should not be wrapped by a decorative table"
         assert 'text-align:justify' not in html, "Paragraphs should not force justification"
         assert 'letter-spacing:0.3px' not in html, "Paragraphs should not force letter spacing"
@@ -407,24 +407,42 @@ def test_code_block_highlighting_and_fallback():
             language="unknownlang",
             show_line_numbers=False,
         )
+        indented = formatter.format_code_block(
+            "def hello():\n  return 1\n",
+            language="python",
+            show_line_numbers=False,
+        )
+        spaced = formatter.format_code_block(
+            "a = b\n",
+            language="python",
+            show_line_numbers=False,
+        )
 
         assert formatter.style_config.code_pygments_style == "material", "Default code style should use Material"
         assert '<span style="color:' in highlighted.lower(), "Known languages should render highlighted token spans"
+        assert '<table width="100%" cellpadding="0" cellspacing="0" border="0"' in highlighted, "Code block should render with a table wrapper"
+        assert 'height:30px;padding:0 12px;background-color:#2c3b41;' in highlighted.lower(), "Code block should render a material header row"
+        assert '<span style="font-size:14px;line-height:30px;color:#ff5f56;">●</span>' in highlighted, "Code block header should render a red text dot"
+        assert '<span style="font-size:14px;line-height:30px;color:#ffbd2e;">●</span>' in highlighted, "Code block header should render a yellow text dot"
+        assert '<span style="font-size:14px;line-height:30px;color:#27c93f;">●</span>' in highlighted, "Code block header should render a green text dot"
+        assert '<tr style="border:none !important;"><td style="height:30px;padding:0 12px;background-color:' in highlighted.lower(), "Code block header td should force border:none"
+        assert 'border:none !important;border-radius:10px 10px 0 0;' in highlighted.lower(), "Code block header td should keep border:none and rounded top corners"
+        assert '<tr style="border:none !important;"><td style="padding:0;border:none !important;">' in highlighted, "Code block wrapper td should match the commit layout"
+        assert '<pre style="' in highlighted, "Code block should render a pre element"
+        assert 'background-color:#263238;border:none !important;border-radius:0 0 10px 10px;' in highlighted.lower(), "Code block pre should use material background without borders"
+        assert 'display:block;width:100%;overflow:auto;margin:0;padding:16px;' in highlighted, "Code block pre should provide full-width scrollable overflow"
+        assert 'line-height:1.2;' in highlighted, "Code block pre should use line-height 1.2"
+        assert 'white-space:' not in highlighted, "Code block pre should not rely on white-space rules"
+        assert 'word-wrap:break-word' not in highlighted, "Code block pre should not force line wrapping"
+        assert '<br>\n' in highlighted, "Code block lines should be separated by br tags"
+        assert '&nbsp;' in highlighted, "Code block should preserve spacing with nbsp entities"
+        assert '&nbsp;&nbsp;<span style="color:#BB80B3;">return</span>' in indented, "Leading indentation should be preserved before highlighted tokens"
+        assert 'a&nbsp;<span style="color:#56B6C2;">=</span>' not in spaced, "Whitespace between tokens should not remain as bare text before a colored token"
+        assert '<span style="color:#89DDFF;">&nbsp;=</span>&nbsp;b' in spaced, "Whitespace between tokens should be absorbed into adjacent token output"
         assert 'border-radius:8px;' not in highlighted, "Code block should not have 8px radius"
-        assert '<div style="margin:16px 0;width:100%;max-width:100%;overflow:hidden;background:none;border:none !important;">' in highlighted, "Code block outer wrapper should clip page-level overflow"
-        assert 'height:30px;display:flex;align-items:center;padding:0 12px;' in highlighted, "Code block should render a 30px header bar"
-        assert 'background-color:#161b22;' in highlighted, "Code block header should use GitHub dark chrome"
-        assert 'background-color:#ff5f56;' in highlighted and 'background-color:#ffbd2e;' in highlighted and 'background-color:#27c93f;' in highlighted, "Code block header should render red/yellow/green dots"
-        assert 'border:1px solid' not in highlighted, "Code block should not render a border"
-        assert 'overflow-x:auto;overflow-y:hidden;box-sizing:border-box;' in highlighted, "Code block should provide horizontal scrolling on the pre element"
-        assert 'white-space:pre;word-wrap:normal;overflow-wrap:normal;' in highlighted, "Code block should preserve long lines for horizontal scrolling"
-        assert 'white-space:pre-wrap' not in highlighted, "Code block should not soft-wrap long lines"
-        assert 'word-wrap:break-word' not in highlighted, "Code block should not force long-line wrapping"
         assert 'overflow-wrap:anywhere' not in highlighted, "Code block should not force overflow wrapping"
-        assert 'width:max-content' not in highlighted, "Code block should not expand the full page width"
-        assert '<br>' not in highlighted, "Code block lines should use real newlines inside pre"
         assert '&lt;text&gt;' in fallback, "Fallback should still escape HTML"
-        assert 'color:#6ebf26;' not in fallback.lower(), "Unknown language should not use syntax highlight spans"
+        assert 'color:#bb80b3;' not in fallback.lower(), "Unknown language should not use syntax highlight spans"
 
         print("✓ Code block highlighting/fallback test passed")
         return True
@@ -464,7 +482,7 @@ def test_non_table_wrappers_use_background_none():
         assert 'cellpadding="8"' not in html, "Heading wrapper tables should not use non-zero cellpadding"
         assert 'padding-bottom:8px' not in html, "Heading wrapper td should not use padding"
         assert 'padding:0 4px' not in html, "Meta wrapper td should not use padding"
-        assert 'style="width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;">' in html or '<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;">' not in html, "Actual markdown table renderer should remain unchanged"
+        assert 'style="width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse;margin:20px 0;font-size:13px;">' in html or '<table style="width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse;margin:20px 0;font-size:13px;">' not in html, "Actual markdown table renderer should remain width-constrained"
 
         print("✓ Non-table wrapper background-none test passed")
         return True
